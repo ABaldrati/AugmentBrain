@@ -75,7 +75,7 @@ def cris_net(input_shape, nb_classes):
         # Dense(4, activation="elu", kernel_regularizer=regularizers.l2(1e-6)),
 
         Dense(nb_classes, activation="softmax")
-    ])
+    ], name="cris_net")
 
     return model
 
@@ -111,7 +111,7 @@ def TA_CSPNN(nb_classes, Channels=8, Timesamples=250,
     # if you want channels first notation:
     # keras.backend.set_image_data_format('channels_first')
 
-    model = Sequential()
+    model = Sequential(name="TA_CSPNN")
     model.add(Conv2D(Ft, (1, timeKernelLen), padding='same', input_shape=(Channels, Timesamples, 1),
                      use_bias=False))
     model.add(BatchNormalization(axis=1))
@@ -226,4 +226,4 @@ def EEGNet(nb_classes, Chans=8, Samples=250,
     dense = Dense(nb_classes, name='dense', kernel_constraint=max_norm(norm_rate))(flatten)
     softmax = Activation('softmax', name='softmax')(dense)
 
-    return Model(inputs=input1, outputs=softmax)
+    return Model(inputs=input1, outputs=softmax, name="EEGNet")
