@@ -9,6 +9,7 @@
 
 from brainflow import BoardShim, BrainFlowInputParams, BoardIds
 from matplotlib import pyplot as plt
+from dataset_tools import ACTIONS
 
 import numpy as np
 import argparse
