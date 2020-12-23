@@ -141,14 +141,12 @@ def load_data(starting_dir, shuffle=True, balance=False):
 
     if balance:
         lengths = [len(data[i]) for i in range(len(ACTIONS))]
-        print(lengths)
 
         # this is required if one class has more samples than the others
         for i in range(len(ACTIONS)):
             data[i] = data[i][:min(lengths)]
 
         lengths = [len(data[i]) for i in range(len(ACTIONS))]
-        print(lengths)
 
     # this is needed to shuffle the personal_dataset between classes, so the model
     # won't train first on one single class and then pass to the next one
@@ -233,17 +231,6 @@ def preprocess_raw_eeg(data, fs=250, lowcut=2.0, highcut=65.0, MAX_FREQ=60, powe
     #                length=len(data[0, 0]))
 
     data = standardize(data)
-
-    print(data.shape)
-    length = len(data[0, 0])
-    for i in range(len(data)):
-        plt.plot(np.arange(len(data[0][0])), data[i][0].reshape(length))
-    file_name = "../pictures/after_std"
-    title = "After Standardization"
-
-    plt.title(title)
-    plt.savefig(file_name + ".png")
-    plt.clf()
 
     # visualize_data(data,
     #                file_name="../pictures/after_std",
