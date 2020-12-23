@@ -196,7 +196,10 @@ def standardize(data, std_type="channel_wise"):
             for i in range(len(sample)):
                 mean = sample[i].mean()
                 std = sample[i].std()
-                data[k, i, :] = (data[k, i, :] - mean) / std
+                if std < 0.001:
+                    data[k, i, :] = (data[k, i, :] - mean) / (std + 0.1)
+                else:
+                    data[k, i, :] = (data[k, i, :] - mean) / std
 
     return data
 
