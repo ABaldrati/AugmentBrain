@@ -17,6 +17,15 @@ import time
 import os
 
 
+def check_std_deviation(sample: np.ndarray, threshold=0.01):
+    for i in range(len(sample)):
+        std = sample[i].std()
+        print(f"{i} - {std}")
+        if std < threshold:
+            return False
+    return True
+
+
 def save_sample(sample, action):
     actiondir = f"{datadir}/{action}"
     if not os.path.exists(actiondir):
@@ -38,7 +47,6 @@ if __name__ == '__main__':
     # stop and delete that sample
 
     BOARD_SAMPLING_RATE = 250
-    ACTIONS = ["hands", "none", "feet"]
     NUM_CHANNELS = 8
     NUM_TIMESTAMP_PER_SAMPLE = 250
 
@@ -74,16 +82,16 @@ if __name__ == '__main__':
         last_act = rand_act
 
         print("Think ", ACTIONS[last_act], " in 3")
-        time.sleep(1.5)
+        time.sleep(2.5)
         print("Think ", ACTIONS[last_act], " in 2")
-        time.sleep(1.5)
+        time.sleep(2.5)
         print("Think ", ACTIONS[last_act], " in 1")
-        time.sleep(1.5)
+        time.sleep(2.5)
         print("Think ", ACTIONS[last_act], " NOW!!")
         time.sleep(1.5)  # waiting 1.5 sec after cue
 
         board.start_stream()  # use this for default options
-        time.sleep(1.5 * (NUM_TIMESTAMP_PER_SAMPLE/BOARD_SAMPLING_RATE))  # wait 50% more than necessary
+        time.sleep(1.5 * (NUM_TIMESTAMP_PER_SAMPLE / BOARD_SAMPLING_RATE))  # wait 50% more than necessary
         data = board.get_current_board_data(NUM_TIMESTAMP_PER_SAMPLE)
         board.stop_stream()
 
@@ -93,10 +101,15 @@ if __name__ == '__main__':
             sample.append(data[channel])
 
         print(np.array(sample).shape)
-        for j in range(7, 8):
+        for j in range(0, 8):
             plt.plot(np.arange(len(sample[j])), sample[j])
-        plt.show()
+        print(np.array(sample)[:, 25])
 
-        save_sample(np.array(sample), ACTIONS[last_act])
+        if np.array(sample).shape == (NUM_CHANNELS, NUM_TIMESTAMP_PER_SAMPLE) and check_std_deviation(np.array(sample)):
+            save_sample(np.array(sample), ACTIONS[last_act])
+        else:
+            print("Acquisition error")
+            break
+        plt.show()
 
     board.release_session()
