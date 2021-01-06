@@ -322,8 +322,35 @@ def check_duplicate(train_X, test_X):
     return False
 
 
-if __name__ == '__main__':
-    split_data(shuffle=False, division_factor=0, coupling=False)
+def train_generator_with_aug(train_X: np.ndarray, train_y: np.ndarray, batch_size: int, shuffle_factor=1):
+    sparse_train_y = np.argmax(train_y, axis=-1)  # from one-hot to sparse-econding
+    num_classes = train_y.shape[1]
+    indices_list = [np.where(sparse_train_y == i)[0] for i in range(num_classes)]
+    while True:
+        batch_train_X = np.empty((0, train_X.shape[1], train_X.shape[2]))
+        batch_train_y = np.empty((0, num_classes))
+        for _ in range(batch_size // num_classes):
+            for class_index in range(num_classes):
+                sample_indeces = np.random.choice(indices_list[class_index], shuffle_factor)
+                augmented_sample = np.zeros((1, train_X.shape[1], train_X.shape[2]))
+                for channel in range(train_X.shape[1]):
+                    augmented_sample[0, channel, :] = train_X[np.random.choice(sample_indeces), channel, :]
+                batch_train_X = np.append(batch_train_X, augmented_sample, axis=0)
+                batch_train_y = np.append(batch_train_y,
+                                          np.expand_dims(to_categorical(class_index, num_classes=num_classes), axis=0),
+                                          axis=0)
+
+        shuffle_indices = np.arange(len(batch_train_X))  # Probabily this shuffle procedure is useless
+        np.random.shuffle(shuffle_indices)
+        batch_train_X = batch_train_X[shuffle_indices]
+        batch_train_y = batch_train_y[shuffle_indices]
+
+        yield batch_train_X, batch_train_y
+
+
+def main():
+    split_data(shuffle=True, splitting_percentage=(100, 0, 0),
+               division_factor=0, coupling=False, starting_dir="../personal_dataset_250")
 
     # loading personal_dataset
     tmp_train_X, train_y = load_data(starting_dir="../training_data", shuffle=False, balance=True)
@@ -334,3 +361,8 @@ if __name__ == '__main__':
     validation_X, fft_validation_X = preprocess_raw_eeg(tmp_validation_X, lowcut=8, highcut=45, coi3order=0)
 
     check_duplicate(train_X, validation_X)
+    visualize_all_data(tmp_train_X)
+
+
+if __name__ == '__main__':
+    main()
