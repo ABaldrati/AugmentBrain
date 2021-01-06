@@ -234,6 +234,16 @@ def visualize_data(data, file_name, title, length):
     plt.clf()
 
 
+def visualize_all_data(data):
+    # takes a look at the personal_dataset
+    for sample in data:
+        for i in range(len(sample)):
+            plt.plot(np.arange(len(sample[i])), sample[i])
+        check_std_deviation(sample)
+        plt.show()
+        plt.clf()
+
+
 def preprocess_raw_eeg(data, fs=250, lowcut=2.0, highcut=65.0, MAX_FREQ=60, power_hz=50, coi3order=3):
     """
         Processes raw EEG personal_dataset, filters 50Hz noise from electronics in EU, applies bandpass
