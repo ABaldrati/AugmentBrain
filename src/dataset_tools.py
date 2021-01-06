@@ -1,13 +1,13 @@
 # File heavily based on https://github.com/CrisSherban/BrainPad
+import os
+import shutil
 
-from brainflow import DataFilter, FilterTypes, AggOperations
-from scipy.signal import butter, lfilter
+import numpy as np
+from brainflow import DataFilter, FilterTypes
+from keras.utils import to_categorical
 from matplotlib import pyplot as plt
 from scipy.fft import fft
 from tqdm import tqdm
-
-import numpy as np
-import os
 
 ACTIONS = ["feet", "none", "hands"]
 
@@ -47,94 +47,98 @@ def split_data(starting_dir="../personal_dataset", splitting_percentage=(70, 20,
     """
     training_per, validation_per, untouched_per = splitting_percentage
 
-    if not os.path.exists("../training_data") and not os.path.exists("../validation_data") \
-            and not os.path.exists("../untouched_data"):
+    # if not os.path.exists("../training_data") and not os.path.exists("../validation_data") \
+    #         and not os.path.exists("../untouched_data"):
+    if os.path.exists("../training_data"):
+        shutil.rmtree("../training_data")
+    if os.path.exists("../validation_data"):
+        shutil.rmtree("../validation_data")
+    if os.path.exists("../untouched_data"):
+        shutil.rmtree("../untouched_data")
 
-        # creating directories
+    os.mkdir("../training_data")
+    os.mkdir("../validation_data")
+    os.mkdir("../untouched_data")
 
-        os.mkdir("../training_data")
-        os.mkdir("../validation_data")
-        os.mkdir("../untouched_data")
+    for action in ACTIONS:
 
-        for action in ACTIONS:
+        action_data = []
+        all_action_data = []
+        # this will contain all the samples relative to the action
 
-            action_data = []
-            all_action_data = []
-            # this will contain all the samples relative to the action
+        data_dir = os.path.join(starting_dir, action)
+        # sorted will make sure that the personal_dataset is appended in the order of acquisition
+        # since each sample file is saved as "timestamp".npy
+        for file in sorted(os.listdir(data_dir)):
+            # each item is a ndarray of shape (8, 90) that represents ≈1sec of acquisition
+            all_action_data.append(np.load(os.path.join(data_dir, file)))
 
-            data_dir = os.path.join(starting_dir, action)
-            # sorted will make sure that the personal_dataset is appended in the order of acquisition
-            # since each sample file is saved as "timestamp".npy
-            for file in sorted(os.listdir(data_dir)):
-                # each item is a ndarray of shape (8, 90) that represents ≈1sec of acquisition
-                all_action_data.append(np.load(os.path.join(data_dir, file)))
-
-            # TODO: make this coupling part readable
-            if coupling:
-                # coupling near time acquired samples to reduce the probability of having
-                # similar samples in both train and validation sets
-                coupled_actions = []
-                first = True
-                for i in range(len(all_action_data)):
-                    if division_factor != 0:
-                        if i % division_factor == 0:
-                            if first:
-                                tmp_act = all_action_data[i]
-                                first = False
-                            else:
-                                coupled_actions.append([tmp_act, all_action_data[i]])
-                                first = True
-                    else:
+        # TODO: make this coupling part readable
+        if coupling:
+            # coupling near time acquired samples to reduce the probability of having
+            # similar samples in both train and validation sets
+            coupled_actions = []
+            first = True
+            for i in range(len(all_action_data)):
+                if division_factor != 0:
+                    if i % division_factor == 0:
                         if first:
                             tmp_act = all_action_data[i]
                             first = False
                         else:
                             coupled_actions.append([tmp_act, all_action_data[i]])
                             first = True
-
-                if shuffle:
-                    np.random.shuffle(coupled_actions)
-
-                # reformatting all the samples in a single list
-                for i in range(len(coupled_actions)):
-                    for j in range(len(coupled_actions[i])):
-                        action_data.append(coupled_actions[i][j])
-
-            else:
-                for i in range(len(all_action_data)):
-                    if division_factor != 0:
-                        if i % division_factor == 0:
-                            action_data.append(all_action_data[i])
+                else:
+                    if first:
+                        tmp_act = all_action_data[i]
+                        first = False
                     else:
-                        action_data = all_action_data
+                        coupled_actions.append([tmp_act, all_action_data[i]])
+                        first = True
 
-                if shuffle:
-                    np.random.shuffle(action_data)
+            if shuffle:
+                np.random.shuffle(coupled_actions)
 
-            num_training_samples = int(len(action_data) * training_per / 100)
-            num_validation_samples = int(len(action_data) * validation_per / 100)
-            num_untouched_samples = int(len(action_data) * untouched_per / 100)
+            # reformatting all the samples in a single list
+            for i in range(len(coupled_actions)):
+                for j in range(len(coupled_actions[i])):
+                    action_data.append(coupled_actions[i][j])
 
-            # creating subdirectories for each action
-            tmp_dir = os.path.join("../training_data", action)
+        else:
+            for i in range(len(all_action_data)):
+                if division_factor != 0:
+                    if i % division_factor == 0:
+                        action_data.append(all_action_data[i])
+                else:
+                    action_data = all_action_data
+
+            if shuffle:
+                np.random.shuffle(action_data)
+
+        num_training_samples = int(len(action_data) * training_per / 100)
+        num_validation_samples = int(len(action_data) * validation_per / 100)
+        num_untouched_samples = int(len(action_data) * untouched_per / 100)
+
+        # creating subdirectories for each action
+        tmp_dir = os.path.join("../training_data", action)
+        if not os.path.exists(tmp_dir):
+            os.mkdir(tmp_dir)
+        for sample in range(num_training_samples):
+            np.save(file=os.path.join(tmp_dir, str(sample)), arr=action_data[sample])
+
+        tmp_dir = os.path.join("../validation_data", action)
+        if not os.path.exists(tmp_dir):
+            os.mkdir(tmp_dir)
+        for sample in range(num_training_samples, num_training_samples + num_validation_samples):
+            np.save(file=os.path.join(tmp_dir, str(sample)), arr=action_data[sample])
+
+        if untouched_per != 0:
+            tmp_dir = os.path.join("../untouched_data", action)
             if not os.path.exists(tmp_dir):
                 os.mkdir(tmp_dir)
-            for sample in range(num_training_samples):
+            for sample in range(num_training_samples + num_validation_samples,
+                                num_training_samples + num_validation_samples + num_untouched_samples):
                 np.save(file=os.path.join(tmp_dir, str(sample)), arr=action_data[sample])
-
-            tmp_dir = os.path.join("../validation_data", action)
-            if not os.path.exists(tmp_dir):
-                os.mkdir(tmp_dir)
-            for sample in range(num_training_samples, num_training_samples + num_validation_samples):
-                np.save(file=os.path.join(tmp_dir, str(sample)), arr=action_data[sample])
-
-            if untouched_per != 0:
-                tmp_dir = os.path.join("../untouched_data", action)
-                if not os.path.exists(tmp_dir):
-                    os.mkdir(tmp_dir)
-                for sample in range(num_training_samples + num_validation_samples,
-                                    num_training_samples + num_validation_samples + num_untouched_samples):
-                    np.save(file=os.path.join(tmp_dir, str(sample)), arr=action_data[sample])
 
 
 def load_data(starting_dir, shuffle=True, balance=False):
