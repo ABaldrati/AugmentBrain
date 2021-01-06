@@ -9,7 +9,7 @@
 
 from brainflow import BoardShim, BrainFlowInputParams, BoardIds
 from matplotlib import pyplot as plt
-from dataset_tools import ACTIONS
+from dataset_tools import ACTIONS, check_std_deviation
 
 import numpy as np
 import argparse
@@ -17,13 +17,7 @@ import time
 import os
 
 
-def check_std_deviation(sample: np.ndarray, threshold=0.01):
-    for i in range(len(sample)):
-        std = sample[i].std()
-        print(f"{i} - {std}")
-        if std < threshold:
-            return False
-    return True
+
 
 
 def save_sample(sample, action):

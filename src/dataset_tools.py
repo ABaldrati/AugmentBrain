@@ -12,6 +12,22 @@ import os
 ACTIONS = ["feet", "none", "hands"]
 
 
+def check_std_deviation(sample: np.ndarray, lower_threshold=0.01, upper_threshold=25):
+    for i in range(len(sample)):
+        std = sample[i].std()
+        print(f"{i} - {std}")
+
+    for i in range(len(sample)):
+        std = sample[i].std()
+        if std < lower_threshold:
+            print("An electrode may be disconnected")
+            return False
+        if std > upper_threshold:
+            print("Too noisy sample, rejected")
+            return False
+    return True
+
+
 def split_data(starting_dir="../personal_dataset", splitting_percentage=(70, 20, 10), shuffle=True, coupling=False,
                division_factor=0):
     """
