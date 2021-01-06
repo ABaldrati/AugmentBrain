@@ -74,7 +74,7 @@ if __name__ == '__main__':
         if rand_act == last_act:
             rand_act = (rand_act + 1) % len(ACTIONS)
         last_act = rand_act
-
+        input(f"next action is {ACTIONS[last_act]}, press enter to continue")
         print("Think ", ACTIONS[last_act], " in 3")
         time.sleep(2.5)
         print("Think ", ACTIONS[last_act], " in 2")
@@ -97,13 +97,9 @@ if __name__ == '__main__':
         print(np.array(sample).shape)
         for j in range(0, 8):
             plt.plot(np.arange(len(sample[j])), sample[j])
-        print(np.array(sample)[:, 25])
 
         if np.array(sample).shape == (NUM_CHANNELS, NUM_TIMESTAMP_PER_SAMPLE) and check_std_deviation(np.array(sample)):
             save_sample(np.array(sample), ACTIONS[last_act])
-        else:
-            print("Acquisition error")
-            break
         plt.show()
 
     board.release_session()
