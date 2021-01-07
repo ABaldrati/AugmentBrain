@@ -323,6 +323,16 @@ def check_duplicate(train_X, test_X):
 
 
 def train_generator_with_aug(train_X: np.ndarray, train_y: np.ndarray, batch_size: int, shuffle_factor=1):
+    """
+        Yield a batch of data, if shuffle_factor > 1 the yielded samples are a mix of original samples.
+        An output sample is made of a maximum of `shuffle_factor` original sample.
+        If `shuffle_factor` is equal to 1, it is a randomized training without augmentation
+       :param train_X: ndarray, the training set
+       :param train_y:  ndarray, the training labels
+       :param batch_size: int, the batch size
+       :param shuffle_factor: int, maximum original samples in each output samples
+       :yield: tuple, (ndarray, ndarray) batch training data and labels
+    """
     sparse_train_y = np.argmax(train_y, axis=-1)  # from one-hot to sparse-econding
     num_classes = train_y.shape[1]
     indices_list = [np.where(sparse_train_y == i)[0] for i in range(num_classes)]
