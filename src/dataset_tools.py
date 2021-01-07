@@ -350,7 +350,7 @@ def train_generator_with_aug(train_X: np.ndarray, train_y: np.ndarray, batch_siz
                                           np.expand_dims(to_categorical(class_index, num_classes=num_classes), axis=0),
                                           axis=0)
 
-        shuffle_indices = np.arange(len(batch_train_X))  # Probabily this shuffle procedure is useless
+        shuffle_indices = np.arange(len(batch_train_X))  # Probably this shuffle procedure is useless
         np.random.shuffle(shuffle_indices)
         batch_train_X = batch_train_X[shuffle_indices]
         batch_train_y = batch_train_y[shuffle_indices]
