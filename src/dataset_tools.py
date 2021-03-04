@@ -328,15 +328,17 @@ def check_duplicate(train_X, test_X):
     return False
 
 
-def train_generator_with_aug(train_X: np.ndarray, train_y: np.ndarray, batch_size: int, shuffle_factor=1):
+def train_generator_with_aug(train_X: np.ndarray, train_y: np.ndarray, batch_size: int, shuffle_probability: float,
+                             mirror_probability: float, shuffle_factor=0):
     """
         Yield a batch of data, if shuffle_factor > 1 the yielded samples are a mix of original samples.
         An output sample is made of a maximum of `shuffle_factor` original sample.
-        If `shuffle_factor` is equal to 1, it is a randomized training without augmentation
+        If `shuffle_factor` is equal to 0, it is a randomized training without augmentation
        :param train_X: ndarray, the training set
        :param train_y:  ndarray, the training labels
        :param batch_size: int, the batch size
-       :param shuffle_factor: int, maximum original samples in each output samples
+       :param shuffle_probability: probability of shuffling the samples, if 1 always shuffle if 0 never
+       :param shuffle_factor: int, maximum original samples add to the principal one
        :yield: tuple, (ndarray, ndarray) batch training data and labels
     """
     sparse_train_y = np.argmax(train_y, axis=-1)  # from one-hot to sparse-econding
@@ -347,10 +349,25 @@ def train_generator_with_aug(train_X: np.ndarray, train_y: np.ndarray, batch_siz
         batch_train_y = np.empty((0, num_classes))
         for _ in range(batch_size // num_classes):
             for class_index in range(num_classes):
+                principal_sample = np.random.choice(indices_list[class_index])
                 sample_indeces = np.random.choice(indices_list[class_index], shuffle_factor)
                 augmented_sample = np.zeros((1, train_X.shape[1], train_X.shape[2]))
                 for channel in range(train_X.shape[1]):
-                    augmented_sample[0, channel, :] = train_X[np.random.choice(sample_indeces), channel, :]
+                    if np.random.random() > shuffle_probability and np.random.random() > mirror_probability:
+                        augmented_sample[0, channel, :] = train_X[principal_sample, channel, :]
+                    elif np.random.random() < shuffle_probability and np.random.random() > mirror_probability:
+                        augmented_sample[0, channel, :] = train_X[np.random.choice(sample_indeces), channel, :]
+                    elif np.random.random() > shuffle_probability and np.random.random() < mirror_probability:
+                        start_timestamp = np.random.randint(0, int(train_X.shape[2] / 2))
+                        half_channel_sample = train_X[principal_sample, channel,
+                                              start_timestamp: start_timestamp + int(train_X.shape[2] / 2)]
+                        augmented_sample[0, channel, :] = np.append(half_channel_sample, half_channel_sample[::-1])
+                    else:
+                        start_timestamp = np.random.randint(0, int(train_X.shape[2] / 2))
+                        half_channel_sample = train_X[np.random.choice(sample_indeces), channel,
+                                              start_timestamp: start_timestamp + int(train_X.shape[2] / 2)]
+                        augmented_sample[0, channel, :] = np.append(half_channel_sample, half_channel_sample[::-1])
+
                 batch_train_X = np.append(batch_train_X, augmented_sample, axis=0)
                 batch_train_y = np.append(batch_train_y,
                                           np.expand_dims(to_categorical(class_index, num_classes=num_classes), axis=0),
