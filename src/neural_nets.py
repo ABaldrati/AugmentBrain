@@ -1,6 +1,7 @@
 # File heavily based on https://github.com/CrisSherban/BrainPad
 
 import tensorflow as tf
+from tensorflow import keras
 from tensorflow.keras import regularizers, Model
 from tensorflow.keras.constraints import max_norm
 from tensorflow.keras.layers import Conv2D, BatchNormalization, MaxPooling2D, Lambda, AveragePooling2D, \
@@ -227,3 +228,15 @@ def EEGNet(nb_classes, Chans=8, Samples=250,
     softmax = Activation('softmax', name='softmax')(dense)
 
     return Model(inputs=input1, outputs=softmax, name="EEGNet")
+
+
+def recurrent_net(nb_classes=3):
+    model = keras.Sequential(name='recurrent_net')
+    model.add(keras.layers.Input(batch_input_shape=(None, None, 8)))
+    model.add(keras.layers.GRU(16, return_sequences=True))
+    model.add(keras.layers.GRU(32))
+    model.add(keras.layers.Dense(32, activation='elu', kernel_initializer="he_normal"))
+    model.add(keras.layers.BatchNormalization())
+    model.add(keras.layers.Dense(nb_classes, activation='softmax'))
+
+    return model
