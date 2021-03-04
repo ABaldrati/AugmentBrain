@@ -1,6 +1,7 @@
 # File heavily based on https://github.com/CrisSherban/BrainPad
 import os
 import shutil
+from statistics import mean
 
 import numpy as np
 from brainflow import DataFilter, FilterTypes
@@ -13,19 +14,24 @@ ACTIONS = ["feet", "none", "hands"]
 
 
 def check_std_deviation(sample: np.ndarray, lower_threshold=0.01, upper_threshold=25):
+    stds = []
     for i in range(len(sample)):
         std = sample[i].std()
+        stds.append(int(std))
         print(f"{i} - {std}")
-
     for i in range(len(sample)):
         std = sample[i].std()
         if std < lower_threshold:
             print("An electrode may be disconnected")
             return False
         if std > upper_threshold:
-            print("Too noisy sample, rejected")
-            return False
-    return True
+            print(f"Noisy_sample, channel{i} - {std}")
+    print(f"average std deviation: {mean(stds)}")
+    input_save = input("Do you want to save this sample? [Y,n]")
+    if 'n' in input_save:
+        return False
+    else:
+        return True
 
 
 def split_data(starting_dir="../personal_dataset", splitting_percentage=(70, 20, 10), shuffle=True, coupling=False,
