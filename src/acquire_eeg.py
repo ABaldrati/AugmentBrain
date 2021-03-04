@@ -17,9 +17,6 @@ import time
 import os
 
 
-
-
-
 def save_sample(sample, action):
     actiondir = f"{datadir}/{action}"
     if not os.path.exists(actiondir):
