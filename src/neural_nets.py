@@ -8,6 +8,7 @@ from tensorflow.keras.layers import Conv2D, BatchNormalization, MaxPooling2D, La
     SpatialDropout2D, SeparableConv2D
 from tensorflow.keras.layers import Dense, Dropout, Activation, Flatten, Input, DepthwiseConv2D
 from tensorflow.keras.models import Sequential
+from tensorflow.python.keras.layers import Concatenate
 
 stride = 1
 CHANNEL_AXIS = 1
@@ -242,3 +243,60 @@ def recurrent_net(nb_classes=3):
     model.add(keras.layers.Dense(nb_classes, activation='softmax'))
 
     return model
+
+
+def CP_MixedNet(nb_classes, Chans=8, Samples=250,
+                dropoutRate=0.25, F1=12, D=2, F2=24):
+    '''Please refer to https://www.researchgate.net/publication/332953926_A_Channel-Projection_Mixed-Scale_Convolutional_Neural_Network_for_Motor_Imagery_EEG_Decoding'''
+    input = Input(shape=(Chans, Samples, 1))
+    # reshaped_input = Reshape(target_shape=(1, Samples, Chans))(input)
+    # SP_output = Conv2D(Chans, 1, padding='same')(reshaped_input)
+    # SP_output = BatchNormalization(axis=1)(SP_output)
+    # SP_output = Activation('elu')(SP_output)
+    # SP_output = Dropout(rate=dropoutRate)(SP_output)
+
+    # SP_output = Reshape(target_shape=(Chans, Samples, 1))(SP_output)
+    SP_output = Conv2D(F1, kernel_size=(1, 11), padding='same')(input)
+    SP_output = BatchNormalization(axis=1)(SP_output)
+    SP_output = Activation('elu')(SP_output)
+    SP_output = Dropout(rate=dropoutRate)(SP_output)
+
+    SP_output = DepthwiseConv2D((Chans, 1), depth_multiplier=D)(SP_output)
+    SP_output = BatchNormalization(axis=1)(SP_output)
+    SP_output = Activation('elu')(SP_output)
+    SP_output = MaxPooling2D((1, 3))(SP_output)
+
+    # MS-branch1
+    MS_branch1 = Conv2D(F2, 1, padding='same')(SP_output)
+    MS_branch1 = BatchNormalization(axis=1)(MS_branch1)
+    MS_branch1 = Activation('elu')(MS_branch1)
+    MS_branch1 = Dropout(rate=dropoutRate)(MS_branch1)
+
+    MS_branch1 = SeparableConv2D(F2, (1, 11), padding='same')(MS_branch1)
+    MS_branch1 = BatchNormalization(axis=1)(MS_branch1)
+    MS_branch1 = Activation('elu')(MS_branch1)
+
+    # MS-branch2
+    MS_branch2 = Conv2D(F2, 1, padding='same')(SP_output)
+    MS_branch2 = BatchNormalization(axis=1)(MS_branch2)
+    MS_branch2 = Activation('elu')(MS_branch2)
+    MS_branch2 = Dropout(rate=dropoutRate)(MS_branch2)
+
+    MS_branch2 = SeparableConv2D(F2, (1, 11), dilation_rate=(1, 2), padding='same')(MS_branch2)
+    MS_branch2 = BatchNormalization(axis=1)(MS_branch2)
+    MS_branch2 = Activation('elu')(MS_branch2)
+
+    MS_output = Concatenate()([SP_output, MS_branch1, MS_branch2])
+    MS_output = MaxPooling2D((1, 3))(MS_output)
+
+    CB_output = Conv2D(F2, (1, 11))(MS_output)
+    CB_output = BatchNormalization(axis=1)(CB_output)
+    CB_output = Activation('elu')(CB_output)
+    CB_output = MaxPooling2D((1, 3))(CB_output)
+
+    CB_output = Flatten()(CB_output)
+    CB_output = BatchNormalization()(CB_output)
+    CB_output = Dense(nb_classes, name='dense')(CB_output)
+    CB_output = Activation('softmax', name='softmax')(CB_output)
+
+    return Model(inputs=input, outputs=CB_output, name="CP_MixedNet")
