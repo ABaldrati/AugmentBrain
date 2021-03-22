@@ -28,11 +28,14 @@ def check_std_deviation(sample: np.ndarray, lower_threshold=0.01, upper_threshol
         if std > upper_threshold:
             print(f"Noisy_sample, channel{i} - {std}")
     print(f"average std deviation: {mean(stds)}")
-    input_save = input("Do you want to save this sample? [Y,n]")
-    if 'n' in input_save:
-        return False
-    else:
-        return True
+    while True:
+        input_save = input("Do you want to save this sample? [Y,n]")
+        if 'n' in input_save:
+            return False
+        elif 'y' in input_save.lower() or '' == input_save:
+            return True
+        else:
+            print("Enter 'y' to save the sample or 'n' to discard the sample")
 
 
 def split_data(starting_dir="../personal_dataset", splitting_percentage=(70, 20, 10), shuffle=True, coupling=False,
