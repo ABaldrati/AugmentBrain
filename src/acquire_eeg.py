@@ -9,7 +9,7 @@
 
 from brainflow import BoardShim, BrainFlowInputParams, BoardIds
 from matplotlib import pyplot as plt
-from dataset_tools import ACTIONS, check_std_deviation
+from dataset_tools import ACTIONS, check_std_deviation, BOARD_SAMPLING_RATE
 
 import numpy as np
 import argparse
@@ -37,7 +37,6 @@ if __name__ == '__main__':
     # BrainFlow will alert you with a warning if one acquired sample is corrupted,
     # stop and delete that sample
 
-    BOARD_SAMPLING_RATE = 250
     NUM_CHANNELS = 8
     NUM_TIMESTAMP_PER_SAMPLE = 250
 

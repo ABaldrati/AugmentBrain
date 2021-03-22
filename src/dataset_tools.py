@@ -10,6 +10,7 @@ from matplotlib import pyplot as plt
 from scipy.fft import fft
 from tqdm import tqdm
 
+BOARD_SAMPLING_RATE = 250
 ACTIONS = ["feet", "none", "hands"]
 
 
