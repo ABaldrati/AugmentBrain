@@ -247,13 +247,17 @@ def standardize(data, std_type="channel_wise"):
     return data
 
 
-def visualize_data(data, file_name, title, length):
+def visualize_save_data(data, title, file_path=None, save_data=False):
     # takes a look at the personal_dataset
-    for i in range(len(data[0])):
-        plt.plot(np.arange(len(data[0][i])), data[0][i].reshape(length))
+    if save_data and file_path is None:
+        raise ValueError("When saving data you must define a file path")
+    for i in range(len(data)):
+        plt.plot(np.arange(len(data[i])), data[i])
 
     plt.title(title)
-    plt.savefig(file_name + ".png")
+    if save_data:
+        plt.savefig(file_path + ".png")
+    plt.show()
     plt.clf()
 
 
@@ -281,17 +285,17 @@ def preprocess_raw_eeg(data, fs=250, lowcut=2.0, highcut=65.0, MAX_FREQ=60, powe
     :return: tuple, (ndarray, ndarray), process personal_dataset and FFTs respectively
     """
     # print(personal_dataset.shape)
-    # visualize_data(data,
-    #                file_name="../pictures/before",
-    #                title="RAW EEGs",
-    #                length=len(data[0, 0]))
+    # visualize_save_data(data[0],
+    #                     file_path="../pictures/before",
+    #                     title="RAW EEGs",
+    #                     save_data=True)
 
     data = standardize(data)
 
-    # visualize_data(data,
-    #                file_name="../pictures/after_std",
-    #                title="After Standardization",
-    #                length=len(data[0, 0]))
+    # visualize_save_data(data,
+    #                     file_path="../pictures/after_std",
+    #                     title="After Standardization",
+    #                     save_data=True)
 
     fft_data = np.zeros((len(data), len(data[0]), MAX_FREQ))
 
@@ -311,14 +315,15 @@ def preprocess_raw_eeg(data, fs=250, lowcut=2.0, highcut=65.0, MAX_FREQ=60, powe
 
     fft_data = standardize(fft_data)
 
-    # visualize_data(data,
-    #                file_name="../pictures/after_bandpass",
-    #                title=f'After bandpass from {lowcut}Hz to {highcut}Hz',
-    #                length=len(data[0, 0]))
-    # visualize_data(fft_data,
-    #                file_name="../pictures/ffts",
-    #                title="FFTs",
-    #                length=len(fft_data[0, 0]))
+    # visualize_save_data(data[0],
+    #                     file_path="../pictures/after_bandpass",
+    #                     title=f'After bandpass from {lowcut}Hz to {highcut}Hz',
+    #                     save_data=True)
+    #
+    # visualize_save_data(fft_data[0],
+    #                     file_path="../pictures/ffts",
+    #                     title="FFTs",
+    #                     save_data=True)
 
     return data, fft_data
 
