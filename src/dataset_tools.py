@@ -1,6 +1,7 @@
 # File heavily based on https://github.com/CrisSherban/BrainPad
 import os
 import shutil
+from pathlib import Path
 from statistics import mean
 
 import numpy as np
@@ -149,6 +150,18 @@ def split_data(starting_dir="../personal_dataset", splitting_percentage=(70, 20,
             for sample in range(num_training_samples + num_validation_samples,
                                 num_training_samples + num_validation_samples + num_untouched_samples):
                 np.save(file=os.path.join(tmp_dir, str(sample)), arr=action_data[sample])
+
+
+def load_all_raw_data(starting_dir: Path, channels=8, NUM_TIMESTAMP_PER_SAMPLE=250):
+    data_X = np.empty((0, channels, NUM_TIMESTAMP_PER_SAMPLE))
+    data_y = np.empty(0)
+    filtered_actions = [action_dir for action_dir in starting_dir.iterdir() if action_dir.name in ACTIONS]
+    for index, actions_dir in enumerate(filtered_actions):
+        if actions_dir.name in ACTIONS:
+            for sample_path in actions_dir.iterdir():
+                data_X = np.append(data_X, np.expand_dims(np.load(str(sample_path)), axis=0), axis=0)
+                data_y = np.append(data_y, index)
+    return data_X, data_y
 
 
 def load_data(starting_dir, shuffle=True, balance=False):
