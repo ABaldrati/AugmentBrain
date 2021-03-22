@@ -10,6 +10,7 @@ from brainflow import DataFilter, FilterTypes
 from keras.utils import to_categorical
 from matplotlib import pyplot as plt
 from scipy.fft import fft
+from scipy.signal import stft, istft
 from tqdm import tqdm
 
 BOARD_SAMPLING_RATE = 250
@@ -362,6 +363,22 @@ def emd_static_augmentation(train_X: np.ndarray, train_y: np.ndarray, augment_mu
     train_X = train_X + gaussian_noise_matrix
 
     return train_X, train_y
+
+
+def add_noise_on_stft_sample_data(sample: np.ndarray, fs: float, window_size: int, gaussian_noise_std: float):
+    _, _, Zxx = stft(sample, fs=fs, nperseg=window_size)
+    Zxx_magnitude = np.abs(Zxx)
+    Zxx_angle = np.angle(Zxx)
+
+    gaussian_noise_matrix = np.random.normal(loc=0, scale=gaussian_noise_std, size=Zxx.shape)
+    perturbed_Zxx_magnitude = Zxx_magnitude + gaussian_noise_matrix
+
+    perturbed_Zxx = perturbed_Zxx_magnitude * (np.cos(Zxx_angle) + 1j * np.sin(Zxx_angle))
+
+    _, perturbed_sample = istft(perturbed_Zxx)
+    if perturbed_sample.shape != sample.shape:
+        raise RuntimeError("Shape mismatch, check windows_size of STFT")
+    return perturbed_sample
 
 
 def check_duplicate(train_X, test_X):
