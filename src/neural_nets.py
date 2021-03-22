@@ -1,5 +1,5 @@
 # File heavily based on https://github.com/CrisSherban/BrainPad
-
+import warnings
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import regularizers, Model
@@ -15,6 +15,8 @@ CHANNEL_AXIS = 1
 
 def res_net(nb_classes):
     # ResNet implementation
+    warnings.warn("Shape mismatch between this res_net implementation data", DeprecationWarning)
+
     def res_layer(x, filters, pooling=False, dropout=0.0):
         temp = x
         temp = Conv2D(filters, (3, 3), strides=stride, padding="same")(temp)
