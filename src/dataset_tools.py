@@ -266,7 +266,6 @@ def visualize_all_data(data):
     for sample in data:
         for i in range(len(sample)):
             plt.plot(np.arange(len(sample[i])), sample[i])
-        check_std_deviation(sample)
         plt.show()
         plt.clf()
 
