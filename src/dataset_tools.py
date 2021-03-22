@@ -7,7 +7,7 @@ from statistics import mean
 import emd
 import numpy as np
 from brainflow import DataFilter, FilterTypes
-from keras.utils import to_categorical
+from keras.utils import Sequence
 from matplotlib import pyplot as plt
 from scipy.fft import fft
 from scipy.signal import stft, istft
@@ -403,74 +403,93 @@ def check_duplicate(train_X, test_X):
     return False
 
 
-def train_generator_with_aug(train_X: np.ndarray, train_y: np.ndarray, batch_size: int, shuffle_probability: float,
-                             mirror_probability: float, shuffle_factor=0):
+def train_generator_with_aug(train_X: np.ndarray, train_y: np.ndarray, batch_size: int,
+                             shuffle_channel_probability=0., mirror_channel_probability=0.,
+                             stft_noise_sample_probability=0., shuffle_factor=0, gaussian_noise_std=0.,
+                             gaussian_noise_stft_std=0., stft_window_size=20, emd_sample_probability=0., max_imft=6):
     """
-        Yield a batch of data, if shuffle_factor > 1 the yielded samples are a mix of original samples.
-        An output sample is made of a maximum of `shuffle_factor` original sample.
-        If `shuffle_factor` is equal to 0, it is a randomized training without augmentation
-       :param train_X: ndarray, the training set
-       :param train_y:  ndarray, the training labels
-       :param batch_size: int, the batch size
-       :param shuffle_probability: probability of shuffling the samples, if 1 always shuffle if 0 never
-       :param shuffle_factor: int, maximum original samples add to the principal one
-       :yield: tuple, (ndarray, ndarray) batch training data and labels
+    Yield a batch of augmented data, there are few possible data augmentation which are:
+    - swap randomly a channel of a sample with another with the same label
+    - mirror randomly a channel
+    - add gaussian noise on data
+    - add gaussian noise on stft transform of original data
+    - generate new data with empirical mode decomposition
+
+    :param train_X: the training set
+    :param train_y: the training labels
+    :param batch_size: the batch size
+    :param shuffle_channel_probability: probability of shuffling each channel of a sample, if 1 always shuffle if 0 never
+    :param mirror_channel_probability: probability of mirroring each channel of a sample, if 1 always shuffle if 0 never
+    :param stft_noise_sample_probability: probability of adding noise on stft for a sample
+    :param shuffle_factor: maximum samples shuffled with the principal one
+    :param gaussian_noise_std: gaussian noise standard deviation add to data
+    :param gaussian_noise_stft_std: gaussian noise standard deviation add stft of data
+    :param stft_window_size: short time fourier transform windows size
+    :param emd_sample_probability: probability of building a new sample with empirical mode decomposition, if 1 always shuffle if 0 never
+    :param max_imft: maximum imft in empirical mode decomposition
+
+
+
+    :yield: tuple, (ndarray, ndarray) batch training data and labels
     """
-    sparse_train_y = np.argmax(train_y, axis=-1)  # from one-hot to sparse-econding
-    num_classes = train_y.shape[1]
-    indices_list = [np.where(sparse_train_y == i)[0] for i in range(num_classes)]
+    num_channels = train_X.shape[1]
+    num_classes = int(np.max(train_y) + 1)
+    indices_lists = [np.where(train_y == i)[0] for i in range(num_classes)]
+    index_to_class_dict = {}
+    for class_index, class_label_list in enumerate(list(indices_lists)):
+        for sample_index in class_label_list:
+            index_to_class_dict[sample_index] = class_index
+
     while True:
+        epoch_indexes = np.arange(len(train_X))
+        np.random.shuffle(epoch_indexes)
         batch_train_X = np.empty((0, train_X.shape[1], train_X.shape[2]))
-        batch_train_y = np.empty((0, num_classes))
-        for _ in range(batch_size // num_classes):
-            for class_index in range(num_classes):
-                principal_sample = np.random.choice(indices_list[class_index])
-                sample_indeces = np.random.choice(indices_list[class_index], shuffle_factor)
+        batch_train_y = np.empty(0)
+        for principal_sample_index in epoch_indexes:
+            if np.random.random() < emd_sample_probability:
+                augmented_sample = np.zeros((1, train_X.shape[1], train_X.shape[2]))
+                class_index = index_to_class_dict[principal_sample_index]
+                for imf_index in range(max_imft):
+                    current_imf_sample_index = np.random.choice(indices_lists[class_index])
+                    current_imf_sample = train_X[current_imf_sample_index]
+                    for channel in range(num_channels):
+                        channel_imf = emd.sift.sift(current_imf_sample[channel])
+                        try:
+                            augmented_sample[channel] += channel_imf[:, imf_index]
+                        except IndexError:
+                            pass
+            else:
+                class_index = index_to_class_dict[principal_sample_index]
+                augmentation_sample_indexes = np.random.choice(indices_lists[class_index], shuffle_factor)
                 augmented_sample = np.zeros((1, train_X.shape[1], train_X.shape[2]))
                 for channel in range(train_X.shape[1]):
-                    if np.random.random() > shuffle_probability and np.random.random() > mirror_probability:
-                        augmented_sample[0, channel, :] = train_X[principal_sample, channel, :]
-                    elif np.random.random() < shuffle_probability and np.random.random() > mirror_probability:
-                        augmented_sample[0, channel, :] = train_X[np.random.choice(sample_indeces), channel, :]
-                    elif np.random.random() > shuffle_probability and np.random.random() < mirror_probability:
-                        start_timestamp = np.random.randint(0, int(train_X.shape[2] / 2))
-                        half_channel_sample = train_X[principal_sample, channel,
-                                              start_timestamp: start_timestamp + int(train_X.shape[2] / 2)]
-                        augmented_sample[0, channel, :] = np.append(half_channel_sample, half_channel_sample[::-1])
+                    if np.random.random() > shuffle_channel_probability and np.random.random() > mirror_channel_probability:
+                        augmented_sample[0, channel, :] = train_X[principal_sample_index, channel, :]
+                    elif np.random.random() < shuffle_channel_probability and np.random.random() > mirror_channel_probability:
+                        augmented_sample[0, channel, :] = train_X[np.random.choice(augmentation_sample_indexes),
+                                                          channel, :]
+                    elif np.random.random() > shuffle_channel_probability and np.random.random() < mirror_channel_probability:
+                        reverted_channel_sample = train_X[principal_sample_index, channel, ::-1]
+                        augmented_sample[0, channel, :] = reverted_channel_sample
                     else:
-                        start_timestamp = np.random.randint(0, int(train_X.shape[2] / 2))
-                        half_channel_sample = train_X[np.random.choice(sample_indeces), channel,
-                                              start_timestamp: start_timestamp + int(train_X.shape[2] / 2)]
-                        augmented_sample[0, channel, :] = np.append(half_channel_sample, half_channel_sample[::-1])
+                        reverted_channel_sample = train_X[np.random.choice(augmentation_sample_indexes), channel, ::-1]
+                        augmented_sample[0, channel, :] = reverted_channel_sample
 
-                batch_train_X = np.append(batch_train_X, augmented_sample, axis=0)
-                batch_train_y = np.append(batch_train_y,
-                                          np.expand_dims(to_categorical(class_index, num_classes=num_classes), axis=0),
-                                          axis=0)
+            if np.random.random() < stft_noise_sample_probability:
+                augmented_sample = add_noise_on_stft_sample_data(augmented_sample, fs=BOARD_SAMPLING_RATE,
+                                                                 window_size=stft_window_size,
+                                                                 gaussian_noise_std=gaussian_noise_stft_std)
+            batch_train_X = np.append(batch_train_X, augmented_sample, axis=0)
+            batch_train_y = np.append(batch_train_y, class_index)
 
-        shuffle_indices = np.arange(len(batch_train_X))  # Probably this shuffle procedure is useless
-        np.random.shuffle(shuffle_indices)
-        batch_train_X = batch_train_X[shuffle_indices]
-        batch_train_y = batch_train_y[shuffle_indices]
+            if len(batch_train_X) == batch_size:
+                gaussian_noise_matrix = np.random.normal(loc=0, scale=gaussian_noise_std, size=batch_train_X.shape)
+                batch_train_X = batch_train_X + gaussian_noise_matrix
+                yield batch_train_X, batch_train_y
+                batch_train_X = np.empty((0, train_X.shape[1], train_X.shape[2]))
+                batch_train_y = np.empty(0)
 
-        yield batch_train_X, batch_train_y
-
-
-def main():
-    split_data(shuffle=True, splitting_percentage=(100, 0, 0),
-               division_factor=0, coupling=False, starting_dir="../personal_dataset_250")
-
-    # loading personal_dataset
-    tmp_train_X, train_y = load_data(starting_dir="../training_data", shuffle=False, balance=True)
-    tmp_validation_X, validation_y = load_data(starting_dir="../validation_data", shuffle=False, balance=True)
-
-    # cleaning the raw personal_dataset
-    train_X, fft_train_X = preprocess_raw_eeg(tmp_train_X, lowcut=8, highcut=45, coi3order=0)
-    validation_X, fft_validation_X = preprocess_raw_eeg(tmp_validation_X, lowcut=8, highcut=45, coi3order=0)
-
-    check_duplicate(train_X, validation_X)
-    visualize_all_data(tmp_train_X)
-
-
-if __name__ == '__main__':
-    main()
+        if len(batch_train_X) > 0:  # prevent yielding empty batch when len(train_X) % batch_size == 0
+            gaussian_noise_matrix = np.random.normal(loc=0, scale=gaussian_noise_std, size=batch_train_X.shape)
+            batch_train_X = batch_train_X + gaussian_noise_matrix
+            yield batch_train_X, batch_train_y  # yield last batch of the epoch
