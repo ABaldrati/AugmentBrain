@@ -4,6 +4,7 @@ import shutil
 from pathlib import Path
 from statistics import mean
 
+import emd
 import numpy as np
 from brainflow import DataFilter, FilterTypes
 from keras.utils import to_categorical
@@ -325,6 +326,42 @@ def preprocess_raw_eeg(data, fs=250, lowcut=2.0, highcut=65.0, MAX_FREQ=60, powe
     #                     save_data=True)
 
     return data, fft_data
+
+
+def emd_static_augmentation(train_X: np.ndarray, train_y: np.ndarray, augment_multiplier=1, max_imft=6,
+                            gaussian_noise_std=0):
+    print('augmenting dataset using empirical mode decomposition')
+    num_classes = int(np.max(train_y) + 1)
+    num_channels = train_X.shape[1]
+    indices_list = [np.where(train_y == i)[0] for i in range(num_classes)]
+    classes_bar = tqdm(range(num_classes), desc="classes")
+    for class_index in classes_bar:
+        num_class_augmented_sample = len(indices_list[class_index]) * augment_multiplier
+        samples_bar = tqdm(range(num_class_augmented_sample), leave=False,
+                           desc=f"sample in class:{class_index}/{len(classes_bar) - 1}")
+        for _ in samples_bar:
+            augmented_sample = np.zeros(train_X[0].shape)
+            for imf_index in range(max_imft):
+                current_imf_sample_index = np.random.choice(indices_list[class_index])
+                current_imf_sample = train_X[current_imf_sample_index]
+                for channel in range(num_channels):
+                    channel_imf = emd.sift.sift(current_imf_sample[channel])
+                    try:
+                        augmented_sample[channel] += channel_imf[:, imf_index]
+                    except IndexError:
+                        pass
+            train_X = np.append(train_X, np.expand_dims(augmented_sample, axis=0), axis=0)
+            train_y = np.append(train_y, class_index)
+
+    shuffle_indices = np.arange(len(train_X))
+    np.random.shuffle(shuffle_indices)
+    train_X = train_X[shuffle_indices]
+    train_y = train_y[shuffle_indices]
+
+    gaussian_noise_matrix = np.random.normal(loc=0, scale=gaussian_noise_std, size=train_X.shape)
+    train_X = train_X + gaussian_noise_matrix
+
+    return train_X, train_y
 
 
 def check_duplicate(train_X, test_X):
