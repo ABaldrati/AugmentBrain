@@ -32,6 +32,10 @@ def fit_model(train_X: np.ndarray, train_y: np.ndarray, validation_X: np.ndarray
     batch_size = network_hyperparameters_dict['batch_size']
     model_function = network_hyperparameters_dict['network_to_train']
     epochs = network_hyperparameters_dict['epochs']
+
+    if aug_hyperparameters_dict['emd_static_augmentation']:
+        train_X, train_y = emd_static_augmentation(train_X, train_y, aug_hyperparameters_dict['emd_augment_mutliplier'],
+                                                   aug_hyperparameters_dict['MAX_IMFT'.lower()])
     train_generator = train_generator_with_aug(train_X, train_y, batch_size=batch_size, **aug_hyperparameters_dict)
 
     training_name = f"F1:{F1}_D:{D}_F2:{F2}_lr:{learning_rate}{training_name}"
@@ -164,6 +168,12 @@ def kfold_cross_val(data_X: np.ndarray, data_y: np.ndarray, num_folds: int, netw
 
         print('------------------------------------------------------------------------')
         print(f'Training for fold {fold_no} ...')
+
+        if aug_hyperparameters_dict['emd_static_augmentation']:
+            train_X, train_y = emd_static_augmentation(train_X, train_y,
+                                                       aug_hyperparameters_dict['emd_augment_mutliplier'],
+                                                       aug_hyperparameters_dict['MAX_IMFT'.lower()])
+
         train_generator = train_generator_with_aug(train_X, train_y, batch_size=batch_size, **aug_hyperparameters_dict)
         history = model.fit(train_generator,
                             batch_size=batch_size,
@@ -320,8 +330,11 @@ def set_default_hyperparameters():
     aug_hyperparameters_dict['SHUFFLE_FACTOR'.lower()] = 1
 
     # EMD AUGMENTATION PARAMETERS
-    aug_hyperparameters_dict['EMD_SAMPLE_PROBABILITY'.lower()] = 0
+    aug_hyperparameters_dict['EMD_SAMPLE_PROBABILITY'.lower()] = 0  # For performance issues is recommended maintain
+    # such value to zero, use static emd augmentation instead
     aug_hyperparameters_dict['MAX_IMFT'.lower()] = 6
+    aug_hyperparameters_dict['emd_static_augmentation'] = False
+    aug_hyperparameters_dict['emd_augment_mutliplier'] = 0
 
     # NOISE AUGMENTATION PARAMETER
     aug_hyperparameters_dict['GAUSSIAN_NOISE_STD'.lower()] = 0

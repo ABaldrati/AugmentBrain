@@ -406,7 +406,8 @@ def check_duplicate(train_X, test_X):
 def train_generator_with_aug(train_X: np.ndarray, train_y: np.ndarray, batch_size: int,
                              shuffle_channel_probability=0., mirror_channel_probability=0.,
                              stft_noise_sample_probability=0., shuffle_factor=0, gaussian_noise_std=0.,
-                             gaussian_noise_stft_std=0., stft_window_size=20, emd_sample_probability=0., max_imft=6):
+                             gaussian_noise_stft_std=0., stft_window_size=20, emd_sample_probability=0., max_imft=6,
+                             **kwargs):
     """
     Yield a batch of augmented data, there are few possible data augmentation which are:
     - swap randomly a channel of a sample with another with the same label
