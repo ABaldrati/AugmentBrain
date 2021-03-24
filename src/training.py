@@ -29,10 +29,10 @@ def fit_model(train_X: np.ndarray, train_y: np.ndarray, validation_X: np.ndarray
     D = network_hyperparameters_dict['D']
     F2 = network_hyperparameters_dict['F2']
     learning_rate = network_hyperparameters_dict['learning_rate']
-    batch_size = aug_hyperparameters_dict['batch_size']
+    batch_size = network_hyperparameters_dict['batch_size']
     model_function = network_hyperparameters_dict['network_to_train']
     epochs = network_hyperparameters_dict['epochs']
-    train_generator = train_generator_with_aug(train_X, train_y, **aug_hyperparameters_dict)
+    train_generator = train_generator_with_aug(train_X, train_y, batch_size=batch_size, **aug_hyperparameters_dict)
 
     training_name = f"F1:{F1}_D:{D}_F2:{F2}_lr:{learning_rate}{training_name}"
     model = model_function(nb_classes=len(ACTIONS), F1=F1, D=D, F2=F2)
@@ -126,7 +126,7 @@ def kfold_cross_val(data_X: np.ndarray, data_y: np.ndarray, num_folds: int, netw
     D = network_hyperparameters_dict['D']
     F2 = network_hyperparameters_dict['F2']
     learning_rate = network_hyperparameters_dict['learning_rate']
-    batch_size = aug_hyperparameters_dict['batch_size']
+    batch_size = network_hyperparameters_dict['batch_size']
     model_function = network_hyperparameters_dict['network_to_train']
     epochs = network_hyperparameters_dict['epochs']
     training_name = f"F1:{F1}_D:{D}_F2:{F2}_lr:{learning_rate}"
@@ -164,7 +164,7 @@ def kfold_cross_val(data_X: np.ndarray, data_y: np.ndarray, num_folds: int, netw
 
         print('------------------------------------------------------------------------')
         print(f'Training for fold {fold_no} ...')
-        train_generator = train_generator_with_aug(train_X, train_y, **aug_hyperparameters_dict)
+        train_generator = train_generator_with_aug(train_X, train_y, batch_size=batch_size, **aug_hyperparameters_dict)
         history = model.fit(train_generator,
                             batch_size=batch_size,
                             steps_per_epoch=ceil(train_X.shape[0] / batch_size),
@@ -312,8 +312,7 @@ def set_default_hyperparameters():
     network_hyperparameters_dict['D'] = 2
     network_hyperparameters_dict['F2'] = 24
     network_hyperparameters_dict['RANDOM_STATE'] = 50
-    aug_hyperparameters_dict[
-        'BATCH_SIZE'.lower()] = 32  # Maybe a little contradiction but we need it in train generator
+    network_hyperparameters_dict['BATCH_SIZE'.lower()] = 32
 
     # SCRAMBLING AUGMENTATION PARAMETERS
     aug_hyperparameters_dict['MIRROR_CHANNEL_PROBABILITY'.lower()] = 0
