@@ -36,7 +36,7 @@ def fit_model(train_X: np.ndarray, train_y: np.ndarray, validation_X: np.ndarray
 
     if aug_hyperparameters_dict['emd_static_augmentation']:
         train_X, train_y = emd_static_augmentation(train_X, train_y, aug_hyperparameters_dict['emd_augment_mutliplier'],
-                                                   aug_hyperparameters_dict['MAX_IMFT'.lower()])
+                                                   aug_hyperparameters_dict['max_imft'])
     train_generator = train_generator_with_aug(train_X, train_y, batch_size=batch_size, **aug_hyperparameters_dict)
 
     training_name = f"F1:{F1}_D:{D}_F2:{F2}_lr:{learning_rate}{training_name}"
@@ -174,7 +174,7 @@ def kfold_cross_val(data_X: np.ndarray, data_y: np.ndarray, num_folds: int, netw
         if aug_hyperparameters_dict['emd_static_augmentation']:
             train_X, train_y = emd_static_augmentation(train_X, train_y,
                                                        aug_hyperparameters_dict['emd_augment_mutliplier'],
-                                                       aug_hyperparameters_dict['MAX_IMFT'.lower()])
+                                                       aug_hyperparameters_dict['max_imft'])
 
         train_generator = train_generator_with_aug(train_X, train_y, batch_size=batch_size, **aug_hyperparameters_dict)
         history = model.fit(train_generator,
@@ -230,33 +230,34 @@ class Hyperparameters:
 
         # NETWORKS PARAMETERS
         network_hyperparameters_dict['network_to_train'] = EEGNet
-        network_hyperparameters_dict['EPOCHS'.lower()] = 10000
-        network_hyperparameters_dict['LEARNING_RATE'.lower()] = 5e-5
+        network_hyperparameters_dict['epochs'] = 10000
+        network_hyperparameters_dict['learning_rate'] = 5e-5
         network_hyperparameters_dict['F1'] = 12
         network_hyperparameters_dict['D'] = 2
         network_hyperparameters_dict['F2'] = 24
         network_hyperparameters_dict['RANDOM_STATE'] = self.random_state
-        network_hyperparameters_dict['BATCH_SIZE'.lower()] = 32
+        network_hyperparameters_dict['batch_size'] = 32
 
         # SCRAMBLING AUGMENTATION PARAMETERS
-        aug_hyperparameters_dict['MIRROR_CHANNEL_PROBABILITY'.lower()] = 0
-        aug_hyperparameters_dict['SHUFFLE_CHANNEL_PROBABILITY'.lower()] = 0
-        aug_hyperparameters_dict['SHUFFLE_FACTOR'.lower()] = 1
+        aug_hyperparameters_dict['mirror_channel_probability'] = 0
+        aug_hyperparameters_dict['shuffle_channel_probability'] = 0
+        aug_hyperparameters_dict['shuffle_factor'] = 1
 
         # EMD AUGMENTATION PARAMETERS
-        aug_hyperparameters_dict['EMD_SAMPLE_PROBABILITY'.lower()] = 0  # For performance issues is recommended maintain
+        aug_hyperparameters_dict['emd_sample_probability'] = 0  # For performance issues is recommended maintain
         # such value to zero, use static emd augmentation instead
-        aug_hyperparameters_dict['MAX_IMFT'.lower()] = 6
+        aug_hyperparameters_dict['max_imft'] = 6
         aug_hyperparameters_dict['emd_static_augmentation'] = False
         aug_hyperparameters_dict['emd_augment_mutliplier'] = 0
 
         # NOISE AUGMENTATION PARAMETER
-        aug_hyperparameters_dict['GAUSSIAN_NOISE_STD'.lower()] = 0
+        aug_hyperparameters_dict['gaussian_noise_std'] = 0
 
         # STFT NOISE AUGMENTATION PARAMETERS
-        aug_hyperparameters_dict['STFT_NOISE_SAMPLE_PROBABILITY'.lower()] = 0
-        aug_hyperparameters_dict['GAUSSIAN_NOISE_STFT_STD'.lower()] = 1e-2
-        aug_hyperparameters_dict['STFT_WINDOW_SIZE'.lower()] = 20
+        aug_hyperparameters_dict['stft_noise_sample_probability'] = 0
+        aug_hyperparameters_dict['gaussian_noise_stft_std'] = 1e-2
+        aug_hyperparameters_dict['stft_window_size'] = 20
+
         return network_hyperparameters_dict, aug_hyperparameters_dict
 
 
@@ -295,27 +296,27 @@ def main():
     kfold_cross_val(data_X, data_y, NUM_FOLDS, network_hyperparameters_dict, aug_hyperparameters_dict)
 
     network_hyperparameters_dict, aug_hyperparameters_dict = hyperparameters.set_default_hyperparameters()
-    aug_hyperparameters_dict['MIRROR_CHANNEL_PROBABILITY'.lower()] = 0.1
+    aug_hyperparameters_dict['mirror_channel_probability'] = 0.1
     kfold_cross_val(data_X, data_y, NUM_FOLDS, network_hyperparameters_dict, aug_hyperparameters_dict)
 
     network_hyperparameters_dict, aug_hyperparameters_dict = hyperparameters.set_default_hyperparameters()
-    aug_hyperparameters_dict['MIRROR_CHANNEL_PROBABILITY'.lower()] = 0.15
+    aug_hyperparameters_dict['mirror_channel_probability'] = 0.15
     kfold_cross_val(data_X, data_y, NUM_FOLDS, network_hyperparameters_dict, aug_hyperparameters_dict)
 
     network_hyperparameters_dict, aug_hyperparameters_dict = hyperparameters.set_default_hyperparameters()
-    aug_hyperparameters_dict['MIRROR_CHANNEL_PROBABILITY'.lower()] = 0.2
+    aug_hyperparameters_dict['mirror_channel_probability'] = 0.2
     kfold_cross_val(data_X, data_y, NUM_FOLDS, network_hyperparameters_dict, aug_hyperparameters_dict)
 
     network_hyperparameters_dict, aug_hyperparameters_dict = hyperparameters.set_default_hyperparameters()
-    aug_hyperparameters_dict['SHUFFLE_CHANNEL_PROBABILITY'.lower()] = 0.1
+    aug_hyperparameters_dict['shuffle_channel_probability'] = 0.1
     kfold_cross_val(data_X, data_y, NUM_FOLDS, network_hyperparameters_dict, aug_hyperparameters_dict)
 
     network_hyperparameters_dict, aug_hyperparameters_dict = hyperparameters.set_default_hyperparameters()
-    aug_hyperparameters_dict['SHUFFLE_CHANNEL_PROBABILITY'.lower()] = 0.15
+    aug_hyperparameters_dict['shuffle_channel_probability'] = 0.15
     kfold_cross_val(data_X, data_y, NUM_FOLDS, network_hyperparameters_dict, aug_hyperparameters_dict)
 
     network_hyperparameters_dict, aug_hyperparameters_dict = hyperparameters.set_default_hyperparameters()
-    aug_hyperparameters_dict['SHUFFLE_CHANNEL_PROBABILITY'.lower()] = 0.2
+    aug_hyperparameters_dict['shuffle_channel_probability'] = 0.2
     kfold_cross_val(data_X, data_y, NUM_FOLDS, network_hyperparameters_dict, aug_hyperparameters_dict)
 
     network_hyperparameters_dict, aug_hyperparameters_dict = hyperparameters.set_default_hyperparameters()
@@ -334,30 +335,30 @@ def main():
     kfold_cross_val(data_X, data_y, NUM_FOLDS, network_hyperparameters_dict, aug_hyperparameters_dict)
 
     network_hyperparameters_dict, aug_hyperparameters_dict = hyperparameters.set_default_hyperparameters()
-    aug_hyperparameters_dict['GAUSSIAN_NOISE_STD'.lower()] = 1e-3
+    aug_hyperparameters_dict['gaussian_noise_std'] = 1e-3
     kfold_cross_val(data_X, data_y, NUM_FOLDS, network_hyperparameters_dict, aug_hyperparameters_dict)
 
     network_hyperparameters_dict, aug_hyperparameters_dict = hyperparameters.set_default_hyperparameters()
-    aug_hyperparameters_dict['GAUSSIAN_NOISE_STD'.lower()] = 1e-2
+    aug_hyperparameters_dict['gaussian_noise_std'] = 1e-2
     kfold_cross_val(data_X, data_y, NUM_FOLDS, network_hyperparameters_dict, aug_hyperparameters_dict)
 
     network_hyperparameters_dict, aug_hyperparameters_dict = hyperparameters.set_default_hyperparameters()
-    aug_hyperparameters_dict['GAUSSIAN_NOISE_STD'.lower()] = 1e-1
+    aug_hyperparameters_dict['gaussian_noise_std'] = 1e-1
     kfold_cross_val(data_X, data_y, NUM_FOLDS, network_hyperparameters_dict, aug_hyperparameters_dict)
 
     network_hyperparameters_dict, aug_hyperparameters_dict = hyperparameters.set_default_hyperparameters()
-    aug_hyperparameters_dict['STFT_NOISE_SAMPLE_PROBABILITY'.lower()] = 1
-    aug_hyperparameters_dict['GAUSSIAN_NOISE_STFT_STD'.lower()] = 1e-3
+    aug_hyperparameters_dict['stft_noise_sample_probability'] = 1
+    aug_hyperparameters_dict['gaussian_noise_stft_std'] = 1e-3
     kfold_cross_val(data_X, data_y, NUM_FOLDS, network_hyperparameters_dict, aug_hyperparameters_dict)
 
     network_hyperparameters_dict, aug_hyperparameters_dict = hyperparameters.set_default_hyperparameters()
-    aug_hyperparameters_dict['STFT_NOISE_SAMPLE_PROBABILITY'.lower()] = 1
-    aug_hyperparameters_dict['GAUSSIAN_NOISE_STFT_STD'.lower()] = 1e-2
+    aug_hyperparameters_dict['stft_noise_sample_probability'] = 1
+    aug_hyperparameters_dict['gaussian_noise_stft_std'] = 1e-2
     kfold_cross_val(data_X, data_y, NUM_FOLDS, network_hyperparameters_dict, aug_hyperparameters_dict)
 
     network_hyperparameters_dict, aug_hyperparameters_dict = hyperparameters.set_default_hyperparameters()
-    aug_hyperparameters_dict['STFT_NOISE_SAMPLE_PROBABILITY'.lower()] = 1
-    aug_hyperparameters_dict['GAUSSIAN_NOISE_STFT_STD'.lower()] = 1e-1
+    aug_hyperparameters_dict['stft_noise_sample_probability'] = 1
+    aug_hyperparameters_dict['gaussian_noise_stft_std'] = 1e-1
     kfold_cross_val(data_X, data_y, NUM_FOLDS, network_hyperparameters_dict, aug_hyperparameters_dict)
 
     network_hyperparameters_dict, aug_hyperparameters_dict = hyperparameters.set_default_hyperparameters()
