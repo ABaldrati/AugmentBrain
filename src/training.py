@@ -218,6 +218,42 @@ def print_save_kfold_run_results(acc_per_fold, loss_per_fold, models_path):
         file.write('------------------------------------------------------------------------')
 
 
+def set_default_hyperparameters():
+    network_hyperparameters_dict = {}
+    aug_hyperparameters_dict = {}
+
+    # NETWORKS PARAMETERS
+    network_hyperparameters_dict['network_to_train'] = EEGNet
+    network_hyperparameters_dict['EPOCHS'.lower()] = 10000
+    network_hyperparameters_dict['LEARNING_RATE'.lower()] = 5e-5
+    network_hyperparameters_dict['F1'] = 12
+    network_hyperparameters_dict['D'] = 2
+    network_hyperparameters_dict['F2'] = 24
+    network_hyperparameters_dict['RANDOM_STATE'] = 50
+    network_hyperparameters_dict['BATCH_SIZE'.lower()] = 32
+
+    # SCRAMBLING AUGMENTATION PARAMETERS
+    aug_hyperparameters_dict['MIRROR_CHANNEL_PROBABILITY'.lower()] = 0
+    aug_hyperparameters_dict['SHUFFLE_CHANNEL_PROBABILITY'.lower()] = 0
+    aug_hyperparameters_dict['SHUFFLE_FACTOR'.lower()] = 1
+
+    # EMD AUGMENTATION PARAMETERS
+    aug_hyperparameters_dict['EMD_SAMPLE_PROBABILITY'.lower()] = 0  # For performance issues is recommended maintain
+    # such value to zero, use static emd augmentation instead
+    aug_hyperparameters_dict['MAX_IMFT'.lower()] = 6
+    aug_hyperparameters_dict['emd_static_augmentation'] = False
+    aug_hyperparameters_dict['emd_augment_mutliplier'] = 0
+
+    # NOISE AUGMENTATION PARAMETER
+    aug_hyperparameters_dict['GAUSSIAN_NOISE_STD'.lower()] = 0
+
+    # STFT NOISE AUGMENTATION PARAMETERS
+    aug_hyperparameters_dict['STFT_NOISE_SAMPLE_PROBABILITY'.lower()] = 0
+    aug_hyperparameters_dict['GAUSSIAN_NOISE_STFT_STD'.lower()] = 1e-2
+    aug_hyperparameters_dict['STFT_WINDOW_SIZE'.lower()] = 20
+    return network_hyperparameters_dict, aug_hyperparameters_dict
+
+
 def main():
     STARTING_DIR = Path("../chris_personal_dataset")
     SPLITTING_PERCENTAGE = namedtuple('SPLITTING_PERCENTAGE', ['train', 'val', 'test'])
@@ -308,42 +344,6 @@ def main():
     aug_hyperparameters_dict['STFT_NOISE_SAMPLE_PROBABILITY'.lower()] = 1
     aug_hyperparameters_dict['GAUSSIAN_NOISE_STFT_STD'.lower()] = 1e-1
     kfold_cross_val(data_X, data_y, NUM_FOLDS, network_hyperparameters_dict, aug_hyperparameters_dict)
-
-
-def set_default_hyperparameters():
-    network_hyperparameters_dict = {}
-    aug_hyperparameters_dict = {}
-
-    # NETWORKS PARAMETERS
-    network_hyperparameters_dict['network_to_train'] = EEGNet
-    network_hyperparameters_dict['EPOCHS'.lower()] = 10000
-    network_hyperparameters_dict['LEARNING_RATE'.lower()] = 5e-5
-    network_hyperparameters_dict['F1'] = 12
-    network_hyperparameters_dict['D'] = 2
-    network_hyperparameters_dict['F2'] = 24
-    network_hyperparameters_dict['RANDOM_STATE'] = 50
-    network_hyperparameters_dict['BATCH_SIZE'.lower()] = 32
-
-    # SCRAMBLING AUGMENTATION PARAMETERS
-    aug_hyperparameters_dict['MIRROR_CHANNEL_PROBABILITY'.lower()] = 0
-    aug_hyperparameters_dict['SHUFFLE_CHANNEL_PROBABILITY'.lower()] = 0
-    aug_hyperparameters_dict['SHUFFLE_FACTOR'.lower()] = 1
-
-    # EMD AUGMENTATION PARAMETERS
-    aug_hyperparameters_dict['EMD_SAMPLE_PROBABILITY'.lower()] = 0  # For performance issues is recommended maintain
-    # such value to zero, use static emd augmentation instead
-    aug_hyperparameters_dict['MAX_IMFT'.lower()] = 6
-    aug_hyperparameters_dict['emd_static_augmentation'] = False
-    aug_hyperparameters_dict['emd_augment_mutliplier'] = 0
-
-    # NOISE AUGMENTATION PARAMETER
-    aug_hyperparameters_dict['GAUSSIAN_NOISE_STD'.lower()] = 0
-
-    # STFT NOISE AUGMENTATION PARAMETERS
-    aug_hyperparameters_dict['STFT_NOISE_SAMPLE_PROBABILITY'.lower()] = 0
-    aug_hyperparameters_dict['GAUSSIAN_NOISE_STFT_STD'.lower()] = 1e-2
-    aug_hyperparameters_dict['STFT_WINDOW_SIZE'.lower()] = 20
-    return network_hyperparameters_dict, aug_hyperparameters_dict
 
 
 if __name__ == '__main__':
