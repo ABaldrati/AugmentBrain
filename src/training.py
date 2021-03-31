@@ -16,12 +16,17 @@ import os
 from pathlib import Path
 from math import ceil
 import tensorflow as tf
-from src.custom_callbacks import ReturnBestEarlyStopping
+from custom_callbacks import ReturnBestEarlyStopping
 
 # os.environ['CUDA_VISIBLE_DEVICES'] = '-1'  # shuts down GPU
 
 print(tf.__version__)
 print("Num GPUs Available: ", len(tf.config.experimental.list_physical_devices('GPU')))
+
+# Comment the following lines in order to occupy all GPU memory
+config = tf.compat.v1.ConfigProto()
+config.gpu_options.allow_growth = True
+session = tf.compat.v1.InteractiveSession(config=config)
 
 
 def fit_model(train_X: np.ndarray, train_y: np.ndarray, validation_X: np.ndarray, validation_y: np.ndarray,
