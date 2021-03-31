@@ -1,4 +1,5 @@
 # File heavily based on https://github.com/CrisSherban/BrainPad
+import math
 import os
 import shutil
 from pathlib import Path
@@ -494,3 +495,86 @@ def train_generator_with_aug(train_X: np.ndarray, train_y: np.ndarray, batch_siz
             gaussian_noise_matrix = np.random.normal(loc=0, scale=gaussian_noise_std, size=batch_train_X.shape)
             batch_train_X = batch_train_X + gaussian_noise_matrix
             yield batch_train_X, batch_train_y  # yield last batch of the epoch
+
+
+class TrainSequenceWithAug(Sequence):
+    """
+        Keras Sequence with same funtionalities of 'train_generator_with_aug'
+    """
+    def __init__(self, train_X: np.ndarray, train_y: np.ndarray, batch_size: int,
+                 shuffle_channel_probability=0., mirror_channel_probability=0.,
+                 stft_noise_sample_probability=0., shuffle_factor=0, gaussian_noise_std=0.,
+                 gaussian_noise_stft_std=0., stft_window_size=20, emd_sample_probability=0, max_imft=6):
+        self.max_imft = max_imft
+        self.emd_sample_probability = emd_sample_probability
+        self.stft_window_size = stft_window_size
+        self.gaussian_noise_stft_std = gaussian_noise_stft_std
+        self.gaussian_noise_std = gaussian_noise_std
+        self.shuffle_factor = shuffle_factor
+        self.stft_noise_sample_probability = stft_noise_sample_probability
+        self.mirror_channel_probability = mirror_channel_probability
+        self.shuffle_channel_probability = shuffle_channel_probability
+        self.batch_size = batch_size
+        self.train_y = train_y
+        self.train_X = train_X
+        epoch_indexes = np.arange(len(self.train_X))
+        np.random.shuffle(epoch_indexes)
+        self.train_X = self.train_X[epoch_indexes]
+        self.train_y = self.train_y[epoch_indexes]
+
+        self.num_channels = train_X.shape[1]
+        self.num_classes = int(np.max(train_y) + 1)
+        self.indices_lists = [np.where(train_y == i)[0] for i in range(self.num_classes)]
+
+    def __len__(self):
+        return math.ceil(len(self.train_X) / self.batch_size)
+
+    def __getitem__(self, idx):
+        batch_x = self.train_X[idx * self.batch_size:(idx + 1) * self.batch_size]
+        batch_y = self.train_y[idx * self.batch_size:(idx + 1) * self.batch_size]
+
+        for sample_idx, sample in enumerate(batch_x):
+            class_index = int(batch_y[sample_idx])
+            if np.random.random() < self.emd_sample_probability:
+                batch_x[sample_idx] = np.zeros_like(batch_x[sample_idx])
+                for imf_index in range(self.max_imft):
+                    current_imf_sample_index = np.random.choice(self.indices_lists[class_index])
+                    current_imf_sample = self.train_X[current_imf_sample_index]
+                    for channel in range(self.num_channels):
+                        channel_imf = emd.sift.sift(current_imf_sample[channel])
+                        try:
+                            batch_x[sample_idx, channel, :] += channel_imf[:, imf_index]
+                        except IndexError:
+                            pass
+            else:
+                augmentation_sample_indexes = np.random.choice(self.indices_lists[class_index], self.shuffle_factor)
+                # augmented_sample = np.zeros((1, self.train_X.shape[1], self.train_X.shape[2]))
+                for channel in range(self.train_X.shape[1]):
+                    if np.random.random() > self.shuffle_channel_probability and np.random.random() > self.mirror_channel_probability:
+                        pass
+                    elif np.random.random() < self.shuffle_channel_probability and np.random.random() > self.mirror_channel_probability:
+                        batch_x[sample_idx, channel, :] = self.train_X[np.random.choice(augmentation_sample_indexes),
+                                                          channel, :]
+                    elif np.random.random() > self.shuffle_channel_probability and np.random.random() < self.mirror_channel_probability:
+                        reverted_channel_sample = batch_x[sample_idx, channel, ::-1]
+                        batch_x[sample_idx, channel, :] = reverted_channel_sample
+                    else:
+                        reverted_channel_sample = self.train_X[np.random.choice(augmentation_sample_indexes), channel,
+                                                  ::-1]
+                        batch_x[sample_idx, channel, :] = reverted_channel_sample
+
+            if np.random.random() < self.stft_noise_sample_probability:
+                batch_x[sample_idx] = add_noise_on_stft_sample_data(sample, fs=BOARD_SAMPLING_RATE,
+                                                                    window_size=self.stft_window_size,
+                                                                    gaussian_noise_std=self.gaussian_noise_stft_std)
+        gaussian_noise_matrix = np.random.normal(loc=0, scale=self.gaussian_noise_std, size=batch_x.shape)
+        batch_x = batch_x + gaussian_noise_matrix
+
+        return batch_x, batch_y
+
+    def on_epoch_end(self):
+        epoch_indexes = np.arange(len(self.train_X))
+        np.random.shuffle(epoch_indexes)
+        self.train_X = self.train_X[epoch_indexes]
+        self.train_y = self.train_y[epoch_indexes]
+        self.indices_lists = [np.where(self.train_y == i)[0] for i in range(self.num_classes)]
