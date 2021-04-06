@@ -250,7 +250,7 @@ def standardize(data, std_type="channel_wise"):
     return data
 
 
-def visualize_save_data(data, title, file_path=None, save_data=False):
+def visualize_save_data(data, title, visualize_data=True, file_path=None, save_data=False):
     # takes a look at the personal_dataset
     if save_data and file_path is None:
         raise ValueError("When saving data you must define a file path")
@@ -259,8 +259,9 @@ def visualize_save_data(data, title, file_path=None, save_data=False):
 
     plt.title(title)
     if save_data:
-        plt.savefig(file_path + ".png")
-    plt.show()
+        plt.savefig(file_path)
+    if visualize_data:
+        plt.show()
     plt.clf()
 
 
@@ -501,6 +502,7 @@ class TrainSequenceWithAug(Sequence):
     """
         Keras Sequence with same funtionalities of 'train_generator_with_aug'
     """
+
     def __init__(self, train_X: np.ndarray, train_y: np.ndarray, batch_size: int,
                  shuffle_channel_probability=0., mirror_channel_probability=0.,
                  stft_noise_sample_probability=0., shuffle_factor=0, gaussian_noise_std=0.,
