@@ -103,17 +103,17 @@ def build_discriminator(Chans=8, Samples=250,
     block1 = Conv2D(F1, (1, kernLength), padding='same',
                     input_shape=(2, Chans, Samples),
                     use_bias=False)(input1)
-    block1 = BatchNormalization(axis=1)(block1)
+    block1 = BatchNormalization()(block1)
     block1 = DepthwiseConv2D((Chans, 1), use_bias=False,
                              depth_multiplier=D,
                              depthwise_constraint=max_norm(1.))(block1)
-    block1 = BatchNormalization(axis=1)(block1)
+    block1 = BatchNormalization()(block1)
     block1 = LeakyReLU(alpha=0.2)(block1)
     block1 = AveragePooling2D((1, 4))(block1)
     block1 = dropoutType(dropoutRate)(block1)
 
     block2 = SeparableConv2D(F2, (1, 16), use_bias=False, padding='same')(block1)
-    block2 = BatchNormalization(axis=1)(block2)
+    block2 = BatchNormalization()(block2)
     block2 = LeakyReLU(alpha=0.2)(block2)
     block2 = AveragePooling2D((1, 8))(block2)
     block2 = dropoutType(dropoutRate)(block2)
@@ -121,9 +121,9 @@ def build_discriminator(Chans=8, Samples=250,
     flatten = Flatten(name='flatten')(block2)
 
     if use_sigmoid_activation:
-        output = Dense(1, name='dense', kernel_constraint=max_norm(norm_rate), activation='sigmoid')(flatten)
+        output = Dense(1, name='output', kernel_constraint=max_norm(norm_rate), activation='sigmoid')(flatten)
     else:
-        output = Dense(1, name='dense', kernel_constraint=max_norm(norm_rate))(flatten)
+        output = Dense(1, name='output', kernel_constraint=max_norm(norm_rate))(flatten)
 
     return Model(inputs=input1, outputs=output, name="EEGNet-discriminator")
 
@@ -170,47 +170,47 @@ def build_generator(z_dim):
 
     model.add(UpSampling2D(size=(1, 2), interpolation='bilinear'))
     model.add(SeparableConv2D(2, kernel_size=(1, 8), padding='same'))
-    model.add(BatchNormalization(axis=2))
+    model.add(BatchNormalization())
     model.add(Activation('elu'))
     model.add(
         DepthwiseConv2D((16, 1), use_bias=False, depth_multiplier=2,
                         depthwise_constraint=max_norm(1.), padding='same'))
-    model.add(BatchNormalization(axis=2))
+    model.add(BatchNormalization())
     model.add(Activation('elu'))
 
     model.add(UpSampling2D(size=(1, 2), interpolation='bilinear'))
     model.add(SeparableConv2D(4, kernel_size=(1, 16), padding='same'))
-    model.add(BatchNormalization(axis=2))
+    model.add(BatchNormalization())
     model.add(Activation('elu'))
     model.add(
         DepthwiseConv2D((16, 1), use_bias=False, depth_multiplier=2, depthwise_constraint=max_norm(1.), padding='same'))
-    model.add(BatchNormalization(axis=2))
+    model.add(BatchNormalization())
     model.add(Activation('elu'))
 
     model.add(UpSampling2D(size=(1, 2), interpolation='bilinear'))
     model.add(SeparableConv2D(8, kernel_size=(1, 32), padding='same'))
-    model.add(BatchNormalization(axis=2))
+    model.add(BatchNormalization())
     model.add(Activation('elu'))
     model.add(
         DepthwiseConv2D((16, 1), use_bias=False, depth_multiplier=2, depthwise_constraint=max_norm(1.), padding='same'))
-    model.add(BatchNormalization(axis=2))
+    model.add(BatchNormalization())
     model.add(Activation('elu'))
 
     model.add(UpSampling2D(size=(1, 2), interpolation='bilinear'))
     model.add(SeparableConv2D(8, kernel_size=(1, 64), padding='same'))
-    model.add(BatchNormalization(axis=2))
+    model.add(BatchNormalization())
     model.add(Activation('elu'))
     model.add(DepthwiseConv2D((16, 1), use_bias=False, depth_multiplier=1, depthwise_constraint=max_norm(1.),
                               padding='same'))
-    model.add(BatchNormalization(axis=2))
+    model.add(BatchNormalization())
     model.add(Activation('elu'))
 
     model.add(SeparableConv2D(4, kernel_size=(1, 4)))
-    model.add(BatchNormalization(axis=2))
+    model.add(BatchNormalization())
     model.add(Activation('elu'))
     model.add(DepthwiseConv2D((16, 1), use_bias=False, depth_multiplier=1, depthwise_constraint=max_norm(1.),
                               padding='same'))
-    model.add(BatchNormalization(axis=2))
+    model.add(BatchNormalization())
     model.add(Activation('elu'))
 
     model.add(UpSampling2D(size=(1, 2), interpolation='bilinear'))
@@ -458,7 +458,7 @@ def fit_GAN(train_X, train_y, gan_hyperparameters_dict):
     img_shape = train_X[0, ..., None].shape  # to transform (8,250) shape into (8,250,1)
 
     generator = build_cgan_generator(latent_dim, num_classes=num_classes)
-    discriminator = build_cgan_discriminator(img_shape=img_shape)
+    discriminator = build_cgan_discriminator(img_shape=img_shape, use_sigmoid_activation=True)
 
     gan = GAN(discriminator=discriminator, generator=generator, latent_dim=latent_dim)
     gan.compile(
@@ -560,10 +560,10 @@ def main():
     train_X, val_X, train_y, val_y = train_test_split(tmp_train_X, tmp_train_y, test_size=actual_valid_split_fraction,
                                                       random_state=42, stratify=tmp_train_y)
 
-    gan_hyperparameters_dict = {'latent_dim': 10,
+    gan_hyperparameters_dict = {'latent_dim': 50,
                                 'epochs': 30000,
                                 'batch_size': 32,
-                                'wgan_discriminator_extra_steps': 3}
+                                'wgan_discriminator_extra_steps': 5}
 
     fit_GAN(train_X, train_y, gan_hyperparameters_dict)
 
