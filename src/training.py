@@ -38,6 +38,7 @@ def fit_model(train_X: np.ndarray, train_y: np.ndarray, validation_X: np.ndarray
     batch_size = network_hyperparameters_dict['batch_size']
     model_function = network_hyperparameters_dict['network_to_train']
     epochs = network_hyperparameters_dict['epochs']
+    metric_to_monitor = network_hyperparameters_dict['metric_to_monitor']
 
     if aug_hyperparameters_dict['emd_static_augmentation']:
         train_X, train_y = emd_static_augmentation(train_X, train_y, aug_hyperparameters_dict['emd_augment_mutliplier'],
@@ -57,7 +58,7 @@ def fit_model(train_X: np.ndarray, train_y: np.ndarray, validation_X: np.ndarray
     model_path: Path = Path(f"../{model_name}_{training_start}_{training_name}")
     Path.mkdir(model_path, exist_ok=True)
 
-    callback_lists = get_callback_lists(model_path)
+    callback_lists = get_callback_lists(model_path, metric_to_monitor)
 
     history = model.fit(
         x=train_generator,
@@ -108,17 +109,17 @@ def plot_model_accuracy_and_loss(history, model_path):
     plt.savefig(f'{model_path}/training-validation-accuracy')
 
 
-def get_callback_lists(model_path):
+def get_callback_lists(model_path, metric_to_monitor):
     callbacks_list = [
         ReturnBestEarlyStopping(
-            monitor='val_accuracy',
+            monitor=f'{metric_to_monitor}',
             patience=4000,
             mode='auto',
             restore_best_weights=True,
         ),
         keras.callbacks.ModelCheckpoint(
             filepath=f'{model_path}' + '/saved-models-{epoch:06d}-{val_accuracy:.5f}.h5',
-            monitor='val_accuracy',
+            monitor=f'{metric_to_monitor}',
             save_best_only=True
         ),
         keras.callbacks.CSVLogger(
@@ -141,6 +142,7 @@ def kfold_cross_val(data_X: np.ndarray, data_y: np.ndarray, num_folds: int, netw
     epochs = network_hyperparameters_dict['epochs']
     training_name = f"F1:{F1}_D:{D}_F2:{F2}_lr:{learning_rate}"
     random_state = network_hyperparameters_dict['RANDOM_STATE']
+    metric_to_monitor = network_hyperparameters_dict['metric_to_monitor']
 
     model_name = model_function.__name__
     training_start = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -165,7 +167,7 @@ def kfold_cross_val(data_X: np.ndarray, data_y: np.ndarray, num_folds: int, netw
                       metrics=['accuracy'])
         curerent_fold_model_path = Path(models_path / f"fold_n{fold_no}")
         Path.mkdir(curerent_fold_model_path, exist_ok=True)
-        callback_lists = get_callback_lists(curerent_fold_model_path)
+        callback_lists = get_callback_lists(curerent_fold_model_path, metric_to_monitor)
 
         train_X, val_X, train_y, val_y = train_test_split(data_X[train_indexes], data_y[train_indexes], test_size=2 / 9,
                                                           random_state=random_state,
@@ -242,6 +244,7 @@ class Hyperparameters:
         network_hyperparameters_dict['F2'] = 24
         network_hyperparameters_dict['RANDOM_STATE'] = self.random_state
         network_hyperparameters_dict['batch_size'] = 32
+        network_hyperparameters_dict['metric_to_monitor'] = 'val_loss'
 
         # SCRAMBLING AUGMENTATION PARAMETERS
         aug_hyperparameters_dict['mirror_channel_probability'] = 0
