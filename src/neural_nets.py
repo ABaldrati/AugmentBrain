@@ -210,17 +210,17 @@ def EEGNet(nb_classes, Chans=8, Samples=250,
     block1 = Conv2D(F1, (1, kernLength), padding='same',
                     input_shape=(1, Chans, Samples),
                     use_bias=False)(input1)
-    block1 = BatchNormalization(axis=1)(block1)
+    block1 = BatchNormalization()(block1)
     block1 = DepthwiseConv2D((Chans, 1), use_bias=False,
                              depth_multiplier=D,
                              depthwise_constraint=max_norm(1.))(block1)
-    block1 = BatchNormalization(axis=1)(block1)
+    block1 = BatchNormalization()(block1)
     block1 = Activation('elu')(block1)
     block1 = AveragePooling2D((1, 4))(block1)
     block1 = dropoutType(dropoutRate)(block1)
 
     block2 = SeparableConv2D(F2, (1, 16), use_bias=False, padding='same')(block1)
-    block2 = BatchNormalization(axis=1)(block2)
+    block2 = BatchNormalization()(block2)
     block2 = Activation('elu')(block2)
     block2 = AveragePooling2D((1, 8))(block2)
     block2 = dropoutType(dropoutRate)(block2)
