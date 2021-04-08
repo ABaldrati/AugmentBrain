@@ -101,7 +101,7 @@ def build_discriminator(Chans=8, Samples=250,
 
     ##################################################################
     block1 = Conv2D(F1, (1, kernLength), padding='same',
-                    input_shape=(2, Chans, Samples),
+                    input_shape=(Chans, Samples, 2),
                     use_bias=False)(input1)
     block1 = BatchNormalization()(block1)
     block1 = DepthwiseConv2D((Chans, 1), use_bias=False,
