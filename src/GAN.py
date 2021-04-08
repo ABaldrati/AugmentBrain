@@ -19,7 +19,7 @@ from tensorflow.python.keras.layers import Concatenate, Reshape, LeakyReLU, UpSa
     Multiply, LayerNormalization
 
 from custom_callbacks import GANMonitor
-from src.dataset_tools import load_all_raw_data, preprocess_raw_eeg
+from dataset_tools import load_all_raw_data, preprocess_raw_eeg
 
 # os.environ['CUDA_VISIBLE_DEVICES'] = '-1'  # shuts down GPU
 
