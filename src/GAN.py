@@ -522,7 +522,6 @@ def get_callback_lists(model_path, latent_dim=10):
         GANMonitor(
             model_path=model_path,
             latent_dim=latent_dim
-
         )
     ]
     return callbacks_list
@@ -565,7 +564,8 @@ def main():
                                 'batch_size': 32,
                                 'wgan_discriminator_extra_steps': 5}
 
-    fit_GAN(train_X, train_y, gan_hyperparameters_dict)
+    fit_WGAN(train_X, train_y, gan_hyperparameters_dict)
+    # fit_GAN(train_X, train_y, gan_hyperparameters_dict)
 
 
 if __name__ == '__main__':
