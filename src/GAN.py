@@ -1,13 +1,10 @@
 import json
-import os
-from collections import namedtuple
 from datetime import datetime
 from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
-from sklearn.model_selection import train_test_split
 from tensorflow import keras
 from tensorflow.keras import Model
 from tensorflow.keras.constraints import max_norm

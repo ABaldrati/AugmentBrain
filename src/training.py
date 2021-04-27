@@ -1,23 +1,20 @@
-from argparse import ArgumentParser
-from datetime import datetime
-
-from dataset_tools import split_data, standardize, load_data, preprocess_raw_eeg, ACTIONS, \
-    train_generator_with_aug, \
-    emd_static_augmentation, load_all_raw_data, TrainSequenceWithAug
-from neural_nets import cris_net, res_net, TA_CSPNN, EEGNet, recurrent_net, CP_MixedNet
-from collections import namedtuple
-from sklearn.model_selection import KFold, cross_val_score, train_test_split, StratifiedKFold
-from matplotlib import pyplot as plt
-import numpy as np
-from tensorflow import keras
-import time
 import json
-import os
-from pathlib import Path
+from argparse import ArgumentParser
+from collections import namedtuple
+from datetime import datetime
 from math import ceil
-import tensorflow as tf
-from custom_callbacks import ReturnBestEarlyStopping
+from pathlib import Path
 
+import numpy as np
+import tensorflow as tf
+from matplotlib import pyplot as plt
+from sklearn.model_selection import train_test_split, StratifiedKFold
+from tensorflow import keras
+
+from custom_callbacks import ReturnBestEarlyStopping
+from dataset_tools import preprocess_raw_eeg, ACTIONS, train_generator_with_aug, emd_static_augmentation, \
+    load_all_raw_data
+from neural_nets import EEGNet
 from src.GAN import generate_synthetic_data
 
 # os.environ['CUDA_VISIBLE_DEVICES'] = '-1'  # shuts down GPU
