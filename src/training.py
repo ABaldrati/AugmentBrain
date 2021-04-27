@@ -228,8 +228,9 @@ def print_save_kfold_run_results(acc_per_fold, loss_per_fold, models_path):
 
 
 class Hyperparameters:
-    def __init__(self, random_state):
+    def __init__(self, random_state, label_mapping):
         self.random_state = random_state
+        self.label_mapping = label_mapping
 
     def set_default_hyperparameters(self):
         network_hyperparameters_dict = {}
@@ -245,6 +246,7 @@ class Hyperparameters:
         network_hyperparameters_dict['RANDOM_STATE'] = self.random_state
         network_hyperparameters_dict['batch_size'] = 32
         network_hyperparameters_dict['metric_to_monitor'] = 'val_loss'
+        network_hyperparameters_dict['label_mapping'] = self.label_mapping
 
         # SCRAMBLING AUGMENTATION PARAMETERS
         aug_hyperparameters_dict['mirror_channel_probability'] = 0
@@ -275,16 +277,17 @@ def main():
     args = parser.parse_args()
     RANDOM_STATE = args.random_state
 
-    hyperparameters = Hyperparameters(RANDOM_STATE)
-
     STARTING_DIR = Path("../chris_personal_dataset")
     SPLITTING_PERCENTAGE = namedtuple('SPLITTING_PERCENTAGE', ['train', 'val', 'test'])
     SPLITTING_PERCENTAGE.train, SPLITTING_PERCENTAGE.val, SPLITTING_PERCENTAGE.test = (70, 20, 10)
 
+    raw_data_X, data_y, label_mapping = load_all_raw_data(starting_dir=STARTING_DIR)
+
+    hyperparameters = Hyperparameters(RANDOM_STATE, label_mapping)
+
     NUM_FOLDS = 10
     network_hyperparameters_dict, aug_hyperparameters_dict = hyperparameters.set_default_hyperparameters()
 
-    raw_data_X, data_y = load_all_raw_data(starting_dir=STARTING_DIR)
     data_X, fft_data_X = preprocess_raw_eeg(raw_data_X, lowcut=8, highcut=45, coi3order=0)
 
     tmp_train_X, test_X, tmp_train_y, test_y = train_test_split(data_X, data_y,

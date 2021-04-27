@@ -158,13 +158,15 @@ def split_data(starting_dir="../personal_dataset", splitting_percentage=(70, 20,
 def load_all_raw_data(starting_dir: Path, channels=8, NUM_TIMESTAMP_PER_SAMPLE=250):
     data_X = np.empty((0, channels, NUM_TIMESTAMP_PER_SAMPLE))
     data_y = np.empty(0)
+    mapping = {}
     filtered_actions = [action_dir for action_dir in starting_dir.iterdir() if action_dir.name in ACTIONS]
     for index, actions_dir in enumerate(filtered_actions):
         if actions_dir.name in ACTIONS:
             for sample_path in actions_dir.iterdir():
                 data_X = np.append(data_X, np.expand_dims(np.load(str(sample_path)), axis=0), axis=0)
                 data_y = np.append(data_y, index)
-    return data_X, data_y
+                mapping[index] = actions_dir.name
+    return data_X, data_y, mapping
 
 
 def load_data(starting_dir, shuffle=True, balance=False):

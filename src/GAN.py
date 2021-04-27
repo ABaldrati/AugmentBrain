@@ -552,7 +552,7 @@ def main():
     STARTING_DIR = Path("../chris_personal_dataset")
     SPLITTING_PERCENTAGE = namedtuple('SPLITTING_PERCENTAGE', ['train', 'val', 'test'])
     SPLITTING_PERCENTAGE.train, SPLITTING_PERCENTAGE.val, SPLITTING_PERCENTAGE.test = (70, 20, 10)
-    raw_data_X, data_y = load_all_raw_data(starting_dir=STARTING_DIR)
+    raw_data_X, data_y, label_mapping = load_all_raw_data(starting_dir=STARTING_DIR)
     data_X, fft_data_X = preprocess_raw_eeg(raw_data_X, lowcut=8, highcut=45, coi3order=0)
     tmp_train_X, test_X, tmp_train_y, test_y = train_test_split(data_X, data_y,
                                                                 test_size=SPLITTING_PERCENTAGE.test / 100,
@@ -564,7 +564,8 @@ def main():
     gan_hyperparameters_dict = {'latent_dim': 50,
                                 'epochs': 30000,
                                 'batch_size': 32,
-                                'wgan_discriminator_extra_steps': 5}
+                                'wgan_discriminator_extra_steps': 5,
+                                'label_mapping': label_mapping}
 
     fit_WGAN(train_X, train_y, gan_hyperparameters_dict)
     # fit_GAN(train_X, train_y, gan_hyperparameters_dict)
