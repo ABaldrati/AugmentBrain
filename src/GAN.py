@@ -509,9 +509,11 @@ def fit_WGAN(train_X, train_y, gan_hyperparameters_dict):
 
 
 def get_callback_lists(model_path, latent_dim=10):
+    models_path = model_path / 'models'
+    models_path.mkdir(exist_ok=True)
     callbacks_list = [
         keras.callbacks.ModelCheckpoint(
-            filepath=f'{model_path}' + '/saved-models-{epoch:06d}.h5',
+            filepath=f'{models_path}' + '/saved-models-{epoch:06d}.h5',
             save_best_only=False
         ),
         keras.callbacks.CSVLogger(
