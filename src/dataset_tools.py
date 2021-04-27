@@ -341,7 +341,7 @@ def emd_static_augmentation(train_X: np.ndarray, train_y: np.ndarray, augment_mu
     indices_list = [np.where(train_y == i)[0] for i in range(num_classes)]
     classes_bar = tqdm(range(num_classes), desc="classes")
     for class_index in classes_bar:
-        num_class_augmented_sample = len(indices_list[class_index]) * augment_multiplier
+        num_class_augmented_sample = int(len(indices_list[class_index]) * augment_multiplier)
         samples_bar = tqdm(range(num_class_augmented_sample), leave=False,
                            desc=f"sample in class:{class_index}/{len(classes_bar) - 1}")
         for _ in samples_bar:
