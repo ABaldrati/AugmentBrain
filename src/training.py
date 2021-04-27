@@ -41,10 +41,26 @@ def fit_model(train_X: np.ndarray, train_y: np.ndarray, validation_X: np.ndarray
     model_function = network_hyperparameters_dict['network_to_train']
     epochs = network_hyperparameters_dict['epochs']
     metric_to_monitor = network_hyperparameters_dict['metric_to_monitor']
+    gan_path = aug_hyperparameters_dict['gan_path']
+    gan_attempt_per_sample = aug_hyperparameters_dict['attempt_per_sample']
 
     if aug_hyperparameters_dict['emd_static_augmentation']:
         train_X, train_y = emd_static_augmentation(train_X, train_y, aug_hyperparameters_dict['emd_augment_mutliplier'],
                                                    aug_hyperparameters_dict['max_imft'])
+
+    if aug_hyperparameters_dict['gan_static_augmentation']:
+        num_classes = np.max(train_y) + 1
+        num_samples_per_label = int(len(train_X) / num_classes * aug_hyperparameters_dict['gan_augment_multiplier'])
+
+        for label in range(int(np.max(train_y) + 1)):
+            generated_data = generate_synthetic_data(gan_path,
+                                                     samples_to_generate=num_samples_per_label,
+                                                     attempts=gan_attempt_per_sample,
+                                                     label=label, latent_dim=50)
+            generated_data = generated_data.squeeze(-1)
+            train_X = np.vstack([train_X, generated_data])
+            train_y = np.hstack([train_y, np.ones(num_samples_per_label) * label])
+
     train_generator = train_generator_with_aug(train_X, train_y, batch_size=batch_size, **aug_hyperparameters_dict)
 
     training_name = f"F1:{F1}_D:{D}_F2:{F2}_lr:{learning_rate}{training_name}"
