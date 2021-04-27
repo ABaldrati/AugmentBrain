@@ -10,14 +10,13 @@ import tensorflow as tf
 from matplotlib import pyplot as plt
 from sklearn.model_selection import train_test_split, StratifiedKFold
 from tensorflow import keras
-
 from custom_callbacks import ReturnBestEarlyStopping
 from dataset_tools import preprocess_raw_eeg, ACTIONS, train_generator_with_aug, emd_static_augmentation, \
     load_all_raw_data
 from neural_nets import EEGNet
-from src.GAN import generate_synthetic_data
-
+import os
 # os.environ['CUDA_VISIBLE_DEVICES'] = '-1'  # shuts down GPU
+from src.GAN import generate_synthetic_data
 
 print(tf.__version__)
 print("Num GPUs Available: ", len(tf.config.experimental.list_physical_devices('GPU')))
