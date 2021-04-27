@@ -293,48 +293,24 @@ class Hyperparameters:
         return network_hyperparameters_dict, aug_hyperparameters_dict
 
 
-def main():
-    parser = ArgumentParser()
-    parser.add_argument("--random-state", type=int, default=42)
-    args = parser.parse_args()
-    RANDOM_STATE = args.random_state
-
-    STARTING_DIR = Path("../chris_personal_dataset")
-    GAN_PATH = "../WGAN_2021-04-16 00:58:22/models"  # Insert GAN model path here or comment such line
-    SPLITTING_PERCENTAGE = namedtuple('SPLITTING_PERCENTAGE', ['train', 'val', 'test'])
-    SPLITTING_PERCENTAGE.train, SPLITTING_PERCENTAGE.val, SPLITTING_PERCENTAGE.test = (70, 20, 10)
-
-    raw_data_X, data_y, label_mapping = load_all_raw_data(starting_dir=STARTING_DIR)
-
-    hyperparameters = Hyperparameters(RANDOM_STATE, label_mapping)
-
-    NUM_FOLDS = 10
+def test_routine(GAN_PATH, NUM_FOLDS, data_X, data_y, hyperparameters):
     network_hyperparameters_dict, aug_hyperparameters_dict = hyperparameters.set_default_hyperparameters()
-
-    data_X, fft_data_X = preprocess_raw_eeg(raw_data_X, lowcut=8, highcut=45, coi3order=0)
-
-    tmp_train_X, test_X, tmp_train_y, test_y = train_test_split(data_X, data_y,
-                                                                test_size=SPLITTING_PERCENTAGE.test / 100,
-                                                                random_state=network_hyperparameters_dict[
-                                                                    'RANDOM_STATE'], stratify=data_y)
-    actual_valid_split_fraction = SPLITTING_PERCENTAGE.val / (100 - SPLITTING_PERCENTAGE.test)
-    train_X, val_X, train_y, val_y = train_test_split(tmp_train_X, tmp_train_y, test_size=actual_valid_split_fraction,
-                                                      random_state=network_hyperparameters_dict['RANDOM_STATE'],
-                                                      stratify=tmp_train_y)
-    # reshaping for recurrent net, uncomment if you want to use them
-    # train_X = np.expand_dims(train_X, -1)
-    # validation_X = np.expand_dims(validation_X, -1)
-    # train_X = np.swapaxes(train_X, 1, 2)
-    # validation_X = np.swapaxes(validation_X, 1, 2)
-
     kfold_cross_val(data_X, data_y, NUM_FOLDS, network_hyperparameters_dict, aug_hyperparameters_dict)
 
     network_hyperparameters_dict, aug_hyperparameters_dict = hyperparameters.set_default_hyperparameters()
-    aug_hyperparameters_dict['mirror_channel_probability'] = 0.05
+    aug_hyperparameters_dict['mirror_channel_probability'] = 0.01
     kfold_cross_val(data_X, data_y, NUM_FOLDS, network_hyperparameters_dict, aug_hyperparameters_dict)
 
     network_hyperparameters_dict, aug_hyperparameters_dict = hyperparameters.set_default_hyperparameters()
-    aug_hyperparameters_dict['mirror_channel_probability'] = 0.1
+    aug_hyperparameters_dict['mirror_channel_probability'] = 0.02
+    kfold_cross_val(data_X, data_y, NUM_FOLDS, network_hyperparameters_dict, aug_hyperparameters_dict)
+
+    network_hyperparameters_dict, aug_hyperparameters_dict = hyperparameters.set_default_hyperparameters()
+    aug_hyperparameters_dict['mirror_channel_probability'] = 0.5
+    kfold_cross_val(data_X, data_y, NUM_FOLDS, network_hyperparameters_dict, aug_hyperparameters_dict)
+
+    network_hyperparameters_dict, aug_hyperparameters_dict = hyperparameters.set_default_hyperparameters()
+    aug_hyperparameters_dict['mirror_channel_probability'] = 0.10
     kfold_cross_val(data_X, data_y, NUM_FOLDS, network_hyperparameters_dict, aug_hyperparameters_dict)
 
     network_hyperparameters_dict, aug_hyperparameters_dict = hyperparameters.set_default_hyperparameters()
@@ -342,15 +318,19 @@ def main():
     kfold_cross_val(data_X, data_y, NUM_FOLDS, network_hyperparameters_dict, aug_hyperparameters_dict)
 
     network_hyperparameters_dict, aug_hyperparameters_dict = hyperparameters.set_default_hyperparameters()
-    aug_hyperparameters_dict['mirror_channel_probability'] = 0.2
+    aug_hyperparameters_dict['shuffle_channel_probability'] = 0.01
     kfold_cross_val(data_X, data_y, NUM_FOLDS, network_hyperparameters_dict, aug_hyperparameters_dict)
 
     network_hyperparameters_dict, aug_hyperparameters_dict = hyperparameters.set_default_hyperparameters()
-    aug_hyperparameters_dict['shuffle_channel_probability'] = 0.05
+    aug_hyperparameters_dict['shuffle_channel_probability'] = 0.2
     kfold_cross_val(data_X, data_y, NUM_FOLDS, network_hyperparameters_dict, aug_hyperparameters_dict)
 
     network_hyperparameters_dict, aug_hyperparameters_dict = hyperparameters.set_default_hyperparameters()
-    aug_hyperparameters_dict['shuffle_channel_probability'] = 0.1
+    aug_hyperparameters_dict['shuffle_channel_probability'] = 0.5
+    kfold_cross_val(data_X, data_y, NUM_FOLDS, network_hyperparameters_dict, aug_hyperparameters_dict)
+
+    network_hyperparameters_dict, aug_hyperparameters_dict = hyperparameters.set_default_hyperparameters()
+    aug_hyperparameters_dict['shuffle_channel_probability'] = 0.10
     kfold_cross_val(data_X, data_y, NUM_FOLDS, network_hyperparameters_dict, aug_hyperparameters_dict)
 
     network_hyperparameters_dict, aug_hyperparameters_dict = hyperparameters.set_default_hyperparameters()
@@ -358,7 +338,13 @@ def main():
     kfold_cross_val(data_X, data_y, NUM_FOLDS, network_hyperparameters_dict, aug_hyperparameters_dict)
 
     network_hyperparameters_dict, aug_hyperparameters_dict = hyperparameters.set_default_hyperparameters()
-    aug_hyperparameters_dict['shuffle_channel_probability'] = 0.2
+    aug_hyperparameters_dict['emd_static_augmentation'] = True
+    aug_hyperparameters_dict['emd_augment_mutliplier'] = 0.25
+    kfold_cross_val(data_X, data_y, NUM_FOLDS, network_hyperparameters_dict, aug_hyperparameters_dict)
+
+    network_hyperparameters_dict, aug_hyperparameters_dict = hyperparameters.set_default_hyperparameters()
+    aug_hyperparameters_dict['emd_static_augmentation'] = True
+    aug_hyperparameters_dict['emd_augment_mutliplier'] = 0.5
     kfold_cross_val(data_X, data_y, NUM_FOLDS, network_hyperparameters_dict, aug_hyperparameters_dict)
 
     network_hyperparameters_dict, aug_hyperparameters_dict = hyperparameters.set_default_hyperparameters()
@@ -374,6 +360,36 @@ def main():
     network_hyperparameters_dict, aug_hyperparameters_dict = hyperparameters.set_default_hyperparameters()
     aug_hyperparameters_dict['emd_static_augmentation'] = True
     aug_hyperparameters_dict['emd_augment_mutliplier'] = 3
+    kfold_cross_val(data_X, data_y, NUM_FOLDS, network_hyperparameters_dict, aug_hyperparameters_dict)
+
+    network_hyperparameters_dict, aug_hyperparameters_dict = hyperparameters.set_default_hyperparameters()
+    aug_hyperparameters_dict['gan_static_augmentation'] = True
+    aug_hyperparameters_dict['gan_path'] = GAN_PATH
+    aug_hyperparameters_dict['gan_augment_multiplier'] = 0.25
+    kfold_cross_val(data_X, data_y, NUM_FOLDS, network_hyperparameters_dict, aug_hyperparameters_dict)
+
+    network_hyperparameters_dict, aug_hyperparameters_dict = hyperparameters.set_default_hyperparameters()
+    aug_hyperparameters_dict['gan_static_augmentation'] = True
+    aug_hyperparameters_dict['gan_path'] = GAN_PATH
+    aug_hyperparameters_dict['gan_augment_multiplier'] = 0.5
+    kfold_cross_val(data_X, data_y, NUM_FOLDS, network_hyperparameters_dict, aug_hyperparameters_dict)
+
+    network_hyperparameters_dict, aug_hyperparameters_dict = hyperparameters.set_default_hyperparameters()
+    aug_hyperparameters_dict['gan_static_augmentation'] = True
+    aug_hyperparameters_dict['gan_path'] = GAN_PATH
+    aug_hyperparameters_dict['gan_augment_multiplier'] = 1
+    kfold_cross_val(data_X, data_y, NUM_FOLDS, network_hyperparameters_dict, aug_hyperparameters_dict)
+
+    network_hyperparameters_dict, aug_hyperparameters_dict = hyperparameters.set_default_hyperparameters()
+    aug_hyperparameters_dict['gan_static_augmentation'] = True
+    aug_hyperparameters_dict['gan_path'] = GAN_PATH
+    aug_hyperparameters_dict['gan_augment_multiplier'] = 2
+    kfold_cross_val(data_X, data_y, NUM_FOLDS, network_hyperparameters_dict, aug_hyperparameters_dict)
+
+    network_hyperparameters_dict, aug_hyperparameters_dict = hyperparameters.set_default_hyperparameters()
+    aug_hyperparameters_dict['gan_static_augmentation'] = True
+    aug_hyperparameters_dict['gan_path'] = GAN_PATH
+    aug_hyperparameters_dict['gan_augment_multiplier'] = 3
     kfold_cross_val(data_X, data_y, NUM_FOLDS, network_hyperparameters_dict, aug_hyperparameters_dict)
 
     network_hyperparameters_dict, aug_hyperparameters_dict = hyperparameters.set_default_hyperparameters()
@@ -423,6 +439,39 @@ def main():
 
     network_hyperparameters_dict, aug_hyperparameters_dict = hyperparameters.set_default_hyperparameters()
     kfold_cross_val(data_X, data_y, NUM_FOLDS, network_hyperparameters_dict, aug_hyperparameters_dict)
+
+
+def main():
+    parser = ArgumentParser()
+    parser.add_argument("--random-state", type=int, default=42)
+    args = parser.parse_args()
+    RANDOM_STATE = args.random_state
+
+    STARTING_DIR = Path("../chris_personal_dataset")
+    GAN_PATH = "../WGAN_2021-04-16 00:58:22/models"  # Insert GAN model path here or comment such line
+    SPLITTING_PERCENTAGE = namedtuple('SPLITTING_PERCENTAGE', ['train', 'val', 'test'])
+    SPLITTING_PERCENTAGE.train, SPLITTING_PERCENTAGE.val, SPLITTING_PERCENTAGE.test = (70, 20, 10)
+
+    raw_data_X, data_y, label_mapping = load_all_raw_data(starting_dir=STARTING_DIR)
+
+    hyperparameters = Hyperparameters(RANDOM_STATE, label_mapping)
+
+    NUM_FOLDS = 10
+    network_hyperparameters_dict, aug_hyperparameters_dict = hyperparameters.set_default_hyperparameters()
+
+    data_X, fft_data_X = preprocess_raw_eeg(raw_data_X, lowcut=8, highcut=45, coi3order=0)
+
+    tmp_train_X, test_X, tmp_train_y, test_y = train_test_split(data_X, data_y,
+                                                                test_size=SPLITTING_PERCENTAGE.test / 100,
+                                                                random_state=network_hyperparameters_dict[
+                                                                    'RANDOM_STATE'], stratify=data_y)
+    actual_valid_split_fraction = SPLITTING_PERCENTAGE.val / (100 - SPLITTING_PERCENTAGE.test)
+    train_X, val_X, train_y, val_y = train_test_split(tmp_train_X, tmp_train_y, test_size=actual_valid_split_fraction,
+                                                      random_state=network_hyperparameters_dict['RANDOM_STATE'],
+                                                      stratify=tmp_train_y)
+
+    test_routine(GAN_PATH, NUM_FOLDS, aug_hyperparameters_dict, data_X, data_y, hyperparameters,
+                 network_hyperparameters_dict)
 
 
 if __name__ == '__main__':
