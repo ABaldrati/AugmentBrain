@@ -561,9 +561,7 @@ def main():
 
 
 def generate_synthetic_data(model_folder: Path, samples_to_generate: int, attempts: int, label: int, latent_dim: int,
-                            initial_epoch=20000, epochs_step=50, data_shape=(8, 250, 1), num_classes=3):
-    initial_epoch = 20000
-    epoch_step = 50
+                            initial_epoch=20000, epoch_step=50, data_shape=(8, 250, 1), num_classes=3):
     if type(model_folder) is str:
         model_folder = Path(model_folder)
     generated_samples = np.zeros((samples_to_generate,) + data_shape)
