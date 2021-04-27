@@ -18,6 +18,8 @@ from math import ceil
 import tensorflow as tf
 from custom_callbacks import ReturnBestEarlyStopping
 
+from src.GAN import generate_synthetic_data
+
 # os.environ['CUDA_VISIBLE_DEVICES'] = '-1'  # shuts down GPU
 
 print(tf.__version__)
@@ -143,7 +145,8 @@ def kfold_cross_val(data_X: np.ndarray, data_y: np.ndarray, num_folds: int, netw
     training_name = f"F1:{F1}_D:{D}_F2:{F2}_lr:{learning_rate}"
     random_state = network_hyperparameters_dict['RANDOM_STATE']
     metric_to_monitor = network_hyperparameters_dict['metric_to_monitor']
-
+    gan_path = aug_hyperparameters_dict['gan_path']
+    gan_attempt_per_sample = aug_hyperparameters_dict['attempt_per_sample']
     model_name = model_function.__name__
     training_start = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
@@ -182,6 +185,19 @@ def kfold_cross_val(data_X: np.ndarray, data_y: np.ndarray, num_folds: int, netw
             train_X, train_y = emd_static_augmentation(train_X, train_y,
                                                        aug_hyperparameters_dict['emd_augment_mutliplier'],
                                                        aug_hyperparameters_dict['max_imft'])
+
+        if aug_hyperparameters_dict['gan_static_augmentation']:
+            num_classes = np.max(train_y) + 1
+            num_samples_per_label = int(len(train_X) / num_classes * aug_hyperparameters_dict['gan_augment_multiplier'])
+
+            for label in range(int(np.max(train_y) + 1)):
+                generated_data = generate_synthetic_data(gan_path,
+                                                         samples_to_generate=num_samples_per_label,
+                                                         attempts=gan_attempt_per_sample,
+                                                         label=label, latent_dim=50)
+                generated_data = generated_data.squeeze(-1)
+                train_X = np.vstack([train_X, generated_data])
+                train_y = np.hstack([train_y, np.ones(num_samples_per_label) * label])
 
         train_generator = train_generator_with_aug(train_X, train_y, batch_size=batch_size, **aug_hyperparameters_dict)
         history = model.fit(train_generator,
@@ -260,6 +276,12 @@ class Hyperparameters:
         aug_hyperparameters_dict['emd_static_augmentation'] = False
         aug_hyperparameters_dict['emd_augment_mutliplier'] = 0
 
+        # GAN AUGMENTATION PARAMETERS
+        aug_hyperparameters_dict['gan_static_augmentation'] = False
+        aug_hyperparameters_dict['gan_path'] = None
+        aug_hyperparameters_dict['gan_augment_multiplier'] = 0
+        aug_hyperparameters_dict['attempt_per_sample'] = 500
+
         # NOISE AUGMENTATION PARAMETER
         aug_hyperparameters_dict['gaussian_noise_std'] = 0
 
@@ -278,6 +300,7 @@ def main():
     RANDOM_STATE = args.random_state
 
     STARTING_DIR = Path("../chris_personal_dataset")
+    GAN_PATH = "../WGAN_2021-04-16 00:58:22/models"  # Insert GAN model path here or comment such line
     SPLITTING_PERCENTAGE = namedtuple('SPLITTING_PERCENTAGE', ['train', 'val', 'test'])
     SPLITTING_PERCENTAGE.train, SPLITTING_PERCENTAGE.val, SPLITTING_PERCENTAGE.test = (70, 20, 10)
 

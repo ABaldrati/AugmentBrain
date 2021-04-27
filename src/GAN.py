@@ -571,5 +571,38 @@ def main():
     # fit_GAN(train_X, train_y, gan_hyperparameters_dict)
 
 
+def generate_synthetic_data(model_folder: Path, samples_to_generate: int, attempts: int, label: int, latent_dim: int,
+                            initial_epoch=20000, epochs_step=50, data_shape=(8, 250, 1), num_classes=3):
+    initial_epoch = 20000
+    epoch_step = 50
+    if type(model_folder) is str:
+        model_folder = Path(model_folder)
+    generated_samples = np.zeros((samples_to_generate,) + data_shape)
+    for i in range(samples_to_generate):
+        generator = build_cgan_generator(latent_dim)
+        discriminator = build_cgan_discriminator(data_shape, num_classes, False)
+        model = WGAN(discriminator, generator, latent_dim, 5)
+        model.built = True
+        model.load_weights(str(model_folder / Path(f'saved-models-{initial_epoch:06d}.h5')))
+
+        noise = np.random.normal(loc=0, scale=1, size=(attempts, latent_dim))
+        labels = np.ones((attempts, 1)) * label
+
+        generated_sample = model.generator.predict([noise, labels])
+        predictions = model.discriminator.predict([generated_sample, labels])
+
+        # flattened_predictions = predictions.flatten()
+        # max_indices = np.argpartition(flattened_predictions, -samples_to_generate)[
+        #               -samples_to_generate:]  # take `sample_to_generate` greater indices of predictions
+
+        flattened_predictions = predictions.flatten()
+        max_index = np.argmax(flattened_predictions)
+
+        generated_samples[i] = generated_sample[max_index]
+        initial_epoch += epoch_step
+
+    return generated_samples
+
+
 if __name__ == '__main__':
     main()
