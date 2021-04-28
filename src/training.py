@@ -307,7 +307,10 @@ class Hyperparameters:
         return network_hyperparameters_dict, aug_hyperparameters_dict
 
 
-def test_routine(GAN_PATH, data_X, data_y, hyperparameters):
+def test_routine(GAN_PATH, data_X, data_y, hyperparameters, fixed_random_state: int = None):
+    if fixed_random_state:
+        hyperparameters.random_state = fixed_random_state
+
     network_hyperparameters_dict, aug_hyperparameters_dict = hyperparameters.set_default_hyperparameters()
     kfold_cross_val(data_X, data_y, network_hyperparameters_dict, aug_hyperparameters_dict)
 
