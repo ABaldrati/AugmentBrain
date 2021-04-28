@@ -323,7 +323,7 @@ def test_routine(GAN_PATH, data_X, data_y, hyperparameters, fixed_random_state: 
     kfold_cross_val(data_X, data_y, network_hyperparameters_dict, aug_hyperparameters_dict)
 
     network_hyperparameters_dict, aug_hyperparameters_dict = hyperparameters.set_default_hyperparameters()
-    aug_hyperparameters_dict['mirror_channel_probability'] = 0.5
+    aug_hyperparameters_dict['mirror_channel_probability'] = 0.05
     kfold_cross_val(data_X, data_y, network_hyperparameters_dict, aug_hyperparameters_dict)
 
     network_hyperparameters_dict, aug_hyperparameters_dict = hyperparameters.set_default_hyperparameters()
@@ -339,11 +339,11 @@ def test_routine(GAN_PATH, data_X, data_y, hyperparameters, fixed_random_state: 
     kfold_cross_val(data_X, data_y, network_hyperparameters_dict, aug_hyperparameters_dict)
 
     network_hyperparameters_dict, aug_hyperparameters_dict = hyperparameters.set_default_hyperparameters()
-    aug_hyperparameters_dict['shuffle_channel_probability'] = 0.2
+    aug_hyperparameters_dict['shuffle_channel_probability'] = 0.02
     kfold_cross_val(data_X, data_y, network_hyperparameters_dict, aug_hyperparameters_dict)
 
     network_hyperparameters_dict, aug_hyperparameters_dict = hyperparameters.set_default_hyperparameters()
-    aug_hyperparameters_dict['shuffle_channel_probability'] = 0.5
+    aug_hyperparameters_dict['shuffle_channel_probability'] = 0.05
     kfold_cross_val(data_X, data_y, network_hyperparameters_dict, aug_hyperparameters_dict)
 
     network_hyperparameters_dict, aug_hyperparameters_dict = hyperparameters.set_default_hyperparameters()
