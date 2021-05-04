@@ -11,16 +11,16 @@
   * [Prerequisites](#prerequisites)
   * [Installation](#installation)
 * [Usage](#usage)
-* [Images](#images)
 * [Authors](#authors)
 * [Acknowledgments](#acknowledgments)
 
 
 ## About The Project
 Brain computer interfaces provides a new communication bridge between human minds and devices, however the ability to control such devices with our minds largely depends on the accurate classification and identification of non-invasive EEG signals. For this reason recent advances in deep learning have helped the progress in such field with convolutional neural networks that are becoming the new cutting edges tools to tackle the problem of EEG recognition. In order to successfully train a convolutional neural network a large amount of data are needed and due to the strict requirements for subjects and experimental environments, it is difficult to collect large-scale and high-quality EEG data.
+
 Based on this, in ```AugmentBrain``` we investigate the performance of different data augmentation methods for the classification of Motor Imagery (MI) data using a Convolutional Neural Network tailored for EEG named EEGNet.
 
-All the work is based on [Serban Cristian Tudosie](https://github.com/CrisSherban) [BrainPad](https://github.com/CrisSherban/BrainPad) repository.
+All the work is based on [Serban Cristian Tudosie](https://github.com/CrisSherban) [**BrainPad**](https://github.com/CrisSherban/BrainPad) repository.
 
 
 ### Built With
@@ -52,8 +52,8 @@ git clone https://gitlab.com/ABaldrati/hci-project
 ## Usage
 Here's a brief description of each and every file in the repo:
 
-* ```training.py```: Model training
-* ```dataset_tools.py```: dataset loading utils and preprocessing
+* ```training.py```: model training
+* ```dataset_tools.py```: dataset loading utils, preprocessing and augmentation
 * ```GAN.py```: GAN training
 * ```neural_nets.py```: neural nets definitions
 * ```custom_callbacks.py```: keras custom callbacks which is useful in model and GAN training
