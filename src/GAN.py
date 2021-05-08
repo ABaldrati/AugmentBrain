@@ -534,10 +534,6 @@ def generate_synthetic_data(model_folder: Path, samples_to_generate: int, attemp
         generated_sample = model.generator.predict([noise, labels])
         predictions = model.discriminator.predict([generated_sample, labels])
 
-        # flattened_predictions = predictions.flatten()
-        # max_indices = np.argpartition(flattened_predictions, -samples_to_generate)[
-        #               -samples_to_generate:]  # take `sample_to_generate` greater indices of predictions
-
         flattened_predictions = predictions.flatten()
         max_index = np.argmax(flattened_predictions)
 
