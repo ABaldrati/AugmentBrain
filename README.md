@@ -20,6 +20,8 @@ Brain computer interfaces provides a new communication bridge between human mind
 
 Based on this, in ```AugmentBrain``` we investigate the performance of different data augmentation methods for the classification of Motor Imagery (MI) data using a Convolutional Neural Network tailored for EEG named EEGNet.
 
+More info about the whole project available at [paper](https://gitlab.com/ABaldrati/hci-project/-/blob/master/docs/BrainAugment.pdf)
+
 All the work is based on [Serban Cristian Tudosie](https://github.com/CrisSherban) [**BrainPad**](https://github.com/CrisSherban/BrainPad) repository.
 
 
@@ -41,6 +43,11 @@ All the work is based on [Serban Cristian Tudosie](https://github.com/CrisSherba
 
 To get a local copy up and running follow these simple steps.
 
+### Prerequisites
+
+We strongly recommend the use of the [**Anaconda**](https://www.anaconda.com/) package manager in order to avoid dependency/reproducibility problems.
+A conda installation guide for linux systems can be found [here](https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html)
+
 ### Installation
  
 1. Clone the repo
@@ -48,9 +55,21 @@ To get a local copy up and running follow these simple steps.
 git clone https://gitlab.com/ABaldrati/hci-project
 ```
 2. Install Python dependencies
+```sh
+conda env create -f environment.yml
+```
+
+***OR***
+
+```sh
+conda create -n brainaugment -y python=3.8
+conda activate brainaugment
+conda install -y tensorflow-gpu=2.4.1 matplotlib=3.3.4 scikit-learn=0.24.1
+pip install brainflow==2.4 tqdm==4.60 emd==0.4
+```
 
 ## Usage
-Here's a brief description of each and every file in the repo:
+Here's a brief description of each and every file under the ```src/``` directory:
 
 * ```training.py```: model training
 * ```dataset_tools.py```: dataset loading utils, preprocessing and augmentation
