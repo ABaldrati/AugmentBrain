@@ -1,4 +1,4 @@
-name: brainaugment
+name: augmentbrain
 channels:
   - defaults
 dependencies:

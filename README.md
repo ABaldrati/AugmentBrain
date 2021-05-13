@@ -20,7 +20,7 @@ Brain computer interfaces provides a new communication bridge between human mind
 
 Based on this, in ```AugmentBrain``` we investigate the performance of different data augmentation methods for the classification of Motor Imagery (MI) data using a Convolutional Neural Network tailored for EEG named EEGNet.
 
-More info about the whole project available at [paper](https://gitlab.com/ABaldrati/hci-project/-/blob/master/docs/BrainAugment.pdf)
+More info about the whole project available at [paper](https://gitlab.com/ABaldrati/hci-project/-/blob/master/docs/AugmentBrain.pdf)
 
 All the work is based on [Serban Cristian Tudosie](https://github.com/CrisSherban) [**BrainPad**](https://github.com/CrisSherban/BrainPad) repository.
 
@@ -62,8 +62,8 @@ conda env create -f environment.yml
 ***OR***
 
 ```sh
-conda create -n brainaugment -y python=3.8
-conda activate brainaugment
+conda create -n augmentbrain -y python=3.8
+conda activate augmentbrain
 conda install -y tensorflow-gpu=2.4.1 matplotlib=3.3.4 scikit-learn=0.24.1
 pip install brainflow==2.4 tqdm==4.60 emd==0.4
 ```
