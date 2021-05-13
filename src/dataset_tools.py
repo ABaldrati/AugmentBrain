@@ -8,7 +8,7 @@ from statistics import mean
 import emd
 import numpy as np
 from brainflow import DataFilter, FilterTypes
-from keras.utils import Sequence
+from tensorflow.keras.utils import Sequence
 from matplotlib import pyplot as plt
 from scipy.fft import fft
 from scipy.signal import stft, istft
