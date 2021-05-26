@@ -1,6 +1,6 @@
 # AugmentBrain
 
-![](logo/logo_large.png "Logo")
+![](figures/logo_large.png "Logo")
 
 
 ## Table of Contents
@@ -20,7 +20,11 @@ Brain computer interfaces provides a new communication bridge between human mind
 
 Based on this, in ```AugmentBrain``` we investigate the performance of different data augmentation methods for the classification of Motor Imagery (MI) data using a Convolutional Neural Network tailored for EEG named EEGNet.
 
-More info about the whole project available at [paper](https://gitlab.com/ABaldrati/AugmentBrain/-/blob/master/docs/AugmentBrain.pdf)
+A brief description of the **results** is shown in the following table
+
+![](figures/augmentation_results.png "Results")
+
+More info about the whole project available at [**paper**](https://gitlab.com/ABaldrati/AugmentBrain/-/blob/master/docs/AugmentBrain.pdf)
 
 All the work is based on [Serban Cristian Tudosie](https://github.com/CrisSherban) [**BrainPad**](https://github.com/CrisSherban/BrainPad) repository.
 
