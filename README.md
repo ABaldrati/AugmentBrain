@@ -16,7 +16,7 @@
 
 
 ## About The Project
-Brain computer interfaces provides a new communication bridge between human minds and devices, however the ability to control such devices with our minds largely depends on the accurate classification and identification of non-invasive EEG signals. For this reason recent advances in deep learning have helped the progress in such field with convolutional neural networks that are becoming the new cutting edges tools to tackle the problem of EEG recognition. In order to successfully train a convolutional neural network a large amount of data are needed and due to the strict requirements for subjects and experimental environments, it is difficult to collect large-scale and high-quality EEG data.
+Brain computer interfaces provide a new communication bridge between human minds and devices, however the ability to control such devices with our minds largely depends on the accurate classification and identification of non-invasive EEG signals. For this reason recent advances in deep learning have helped the progress in such field with convolutional neural networks that are becoming the new cutting edges tools to tackle the problem of EEG recognition. In order to successfully train a convolutional neural network a large amount of data are needed and due to the strict requirements for subjects and experimental environments, it is difficult to collect large-scale and high-quality EEG data.
 
 Based on this, in ```AugmentBrain``` we investigate the performance of different data augmentation methods for the classification of Motor Imagery (MI) data using a Convolutional Neural Network tailored for EEG named EEGNet.
 
@@ -24,7 +24,7 @@ A brief description of the **results** is shown in the following table
 
 ![](figures/augmentation_results.png "Results")
 
-More info about the whole project available at [**paper**](https://gitlab.com/ABaldrati/AugmentBrain/-/blob/master/docs/AugmentBrain.pdf)
+More info about the whole project available at [**paper**](https://gitlab.com/ABaldrati/AugmentBrain/-/blob/master/docs/AugmentBrain_paper.pdf) and [**slides**](https://gitlab.com/ABaldrati/AugmentBrain/-/blob/master/docs/AugmentBrain_slides.pdf)
 
 All the work is based on [Serban Cristian Tudosie](https://github.com/CrisSherban) [**BrainPad**](https://github.com/CrisSherban/BrainPad) repository.
 
